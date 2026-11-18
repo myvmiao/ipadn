@@ -48,7 +48,7 @@ final class DownloadConcurrencyTests: XCTestCase {
         var invalidations = 0
         let subscription = manager.objectWillChange.sink { invalidations += 1 }
         manager.urlSession(b, downloadTask: current, didWriteData: 3, totalBytesWritten: 3, totalBytesExpectedToWrite: 10)
-        for _ in 0..<100 where progress.bytes == nil { try await Task.sleep(for: .milliseconds(10)) }
+        for _ in 0..<100 where progress.bytes == nil { try await compatSleep(milliseconds: Double(10)) }
         XCTAssertEqual(progress.bytes?.written, 3)
         XCTAssertEqual(invalidations, 0, "Progress should publish only to its row")
         withExtendedLifetime(subscription) {}
