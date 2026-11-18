@@ -69,6 +69,16 @@
 			isa = PBXBuildFile;
 			fileRef = E62D865FB463397117968832;
 		};
+		AA15C0DE0000000000000001 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = "App/IOS15Compatibility.swift";
+			sourceTree = "<group>";
+		};
+		AA15C0DE0000000000000002 = {
+			isa = PBXBuildFile;
+			fileRef = AA15C0DE0000000000000001;
+		};
 		D5827E778FA6FF7F69E8755C = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -1630,6 +1640,7 @@
 				2E42BE3C9237CFD2F7298A38,
 				E5897D35708E9120B8647A2F,
 				E62D865FB463397117968832,
+				AA15C0DE0000000000000001,
 				D5827E778FA6FF7F69E8755C,
 				B36989F5E7EBF5AEEA7A2637,
 				9C74C66866F0A2483D0A8371,
@@ -1826,6 +1837,7 @@
 				4957CC925B3106081AD1F510,
 				41112957FFC8DF4DD3F48FE2,
 				8EE231649195F263F52CE685,
+				AA15C0DE0000000000000002,
 				7097832CBF79ADFF210E5E91,
 				B67510DB40F0F44420FD5F44,
 				43E25ABCD2BA73E3BFD8EDE0,
@@ -2048,7 +2060,7 @@
 		653F00C218B171A375DB131B = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
 				CLANG_ENABLE_MODULES = YES;
@@ -2068,7 +2080,7 @@
 		C6E4775ECDD79062F35351BF = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
 				CLANG_ENABLE_MODULES = YES;
@@ -2132,6 +2144,12 @@
 					"$(inherited)",
 					"-weak_framework",
 					Translation,
+					"-weak_framework",
+					ActivityKit,
+					"-weak_framework",
+					AppIntents,
+					"-weak_framework",
+					Charts,
 					"$(IPADN_MACPKG_LDFLAGS)",
 					"$(IPADN_NATIVE_LDFLAGS)",
 				);
@@ -2181,6 +2199,12 @@
 					"$(inherited)",
 					"-weak_framework",
 					Translation,
+					"-weak_framework",
+					ActivityKit,
+					"-weak_framework",
+					AppIntents,
+					"-weak_framework",
+					Charts,
 					"$(IPADN_MACPKG_LDFLAGS)",
 					"$(IPADN_NATIVE_LDFLAGS)",
 				);
@@ -2200,6 +2224,7 @@
 		FFCF2052198FB39C6972134D = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				PRODUCT_BUNDLE_IDENTIFIER = app.local.iPadnTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				CODE_SIGN_STYLE = Automatic;
@@ -2231,6 +2256,7 @@
 		A38DFF1D652F9EDE21F290BB = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				PRODUCT_BUNDLE_IDENTIFIER = app.local.iPadnTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				CODE_SIGN_STYLE = Automatic;
@@ -2357,6 +2383,7 @@
 		985F8090218516D8753FD452 = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				PRODUCT_BUNDLE_IDENTIFIER = app.local.iPadnUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				CODE_SIGN_STYLE = Automatic;
@@ -2387,6 +2414,7 @@
 		A886F3335DEEAEE77A300CC2 = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				PRODUCT_BUNDLE_IDENTIFIER = app.local.iPadnUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				CODE_SIGN_STYLE = Automatic;
