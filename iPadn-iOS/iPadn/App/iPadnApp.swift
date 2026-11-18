@@ -75,7 +75,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         // Device tests: open an iPadn link at launch, e.g. --open-url=ipadn://download?url=…
         if let argument = ProcessInfo.processInfo.arguments.first(where: { $0.hasPrefix("--open-url=") }),
            let url = URL(string: String(argument.dropFirst("--open-url=".count))) {
-            Task { @MainActor in try? await Task.sleep(for: .seconds(2)); AppContainer.shared.handleURL(url) }
+            Task { @MainActor in try? await compatSleep(seconds: Double(2)); AppContainer.shared.handleURL(url) }
         }
         #endif
         return true
@@ -254,14 +254,14 @@ private struct PreviewScreen: View {
     private let args = ProcessInfo.processInfo.arguments
     var body: some View {
         Group {
-            if args.contains("--login") { NavigationStack { LoginView() } }
-            else if args.contains("--translation-settings") { NavigationStack { SettingsView(page: .appearance).accountNavigationDestinations() } }
-            else if args.contains("--detail"), let app = store.favorites.first { NavigationStack { AppDetailView(app: app) } }
-            else if args.contains("--installation") { NavigationStack { InstallationSettingsView() } }
-            else if args.contains("--support") { NavigationStack { SupportView() } }
+            if args.contains("--login") { CompatStack { LoginView() } }
+            else if args.contains("--translation-settings") { CompatStack { SettingsView(page: .appearance).accountNavigationDestinations() } }
+            else if args.contains("--detail"), let app = store.favorites.first { CompatStack { AppDetailView(app: app) } }
+            else if args.contains("--installation") { CompatStack { InstallationSettingsView() } }
+            else if args.contains("--support") { CompatStack { SupportView() } }
             else if args.contains("--lock") { AppLockScreen(lock: AppLock.shared).onAppear { AppLock.shared.showPreview() }
                 .preferredColorScheme(store.settings.appearance == "dark" ? .dark : .light) }
-            else if args.contains("--installed") { NavigationStack { InstalledAppsView() } }
+            else if args.contains("--installed") { CompatStack { InstalledAppsView() } }
             else { RootView() }
         }
         .environment(\.dynamicTypeSize, args.contains("--largest-text") ? .accessibility5 : args.contains("--large-text") ? .accessibility2 : .large)

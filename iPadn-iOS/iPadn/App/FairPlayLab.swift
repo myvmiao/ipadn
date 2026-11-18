@@ -120,7 +120,7 @@ enum FairPlayLab {
         var mirrored = 0
         let deadline = Date().addingTimeInterval(3600)
         while Date() < deadline {
-            try? await Task.sleep(for: .milliseconds(600))
+            try? await compatSleep(milliseconds: Double(600))
             if service.lines.count > mirrored {
                 for line in service.lines[mirrored...] { append(line) }
                 mirrored = service.lines.count
@@ -188,7 +188,7 @@ enum FairPlayLab {
         let openSheet = argument.contains("=sheet")
         let clean = argument.contains("=clean") || openSheet
         Task { @MainActor in
-            try? await Task.sleep(for: .seconds(2))
+            try? await compatSleep(seconds: Double(2))
             store.selectTab(.downloads)
             if clean {
                 let ids = Set(store.downloads.jobs.map(\.id))

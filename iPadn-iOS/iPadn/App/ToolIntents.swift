@@ -1,6 +1,7 @@
 import AppIntents
 import Foundation
 
+@available(iOS 16.0, *)
 struct SearchAppIntent: AppIntent {
     static var title: LocalizedStringResource = "搜索应用或商店链接"
     static var description = IntentDescription("打开 iPadn，搜索名称、App ID、商店链接或 App ID 与版本 ID。")
@@ -15,6 +16,7 @@ struct SearchAppIntent: AppIntent {
     }
 }
 
+@available(iOS 16.0, *)
 struct ImportIPAIntent: AppIntent {
     static var title: LocalizedStringResource = "导入 IPA 安装包"
     static var description = IntentDescription("将文件导入 iPadn，并打开下载管理。可用于分享菜单中的快捷指令。")
@@ -39,6 +41,7 @@ struct ImportIPAIntent: AppIntent {
     }
 }
 
+@available(iOS 16.0, *)
 struct DownloadIPAURLIntent: AppIntent {
     static var title: LocalizedStringResource = "下载 IPA 链接"
     static var description = IntentDescription("把 HTTPS 安装包链接添加至后台下载队列。")
@@ -66,6 +69,7 @@ private func storeApp(_ input: String) async throws -> (app: StoreApp, versionID
     return (app, versionID)
 }
 
+@available(iOS 16.0, *)
 struct DownloadAppIntent: AppIntent {
     static var title: LocalizedStringResource = "下载应用"
     static var description = IntentDescription("用当前账号下载 App ID 或 App Store 链接对应的应用（可带版本 ID），并打开下载管理。")
@@ -82,6 +86,7 @@ struct DownloadAppIntent: AppIntent {
     }
 }
 
+@available(iOS 16.0, *)
 struct CheckUpdatesIntent: AppIntent {
     static var title: LocalizedStringResource = "检查已下载应用的更新"
     static var description = IntentDescription("对比已下载的应用与商店的最新版本，返回有新版本的应用。")
@@ -98,6 +103,7 @@ struct CheckUpdatesIntent: AppIntent {
     }
 }
 
+@available(iOS 16.0, *)
 struct DownloadAllUpdatesIntent: AppIntent {
     static var title: LocalizedStringResource = "下载全部更新"
     static var description = IntentDescription("检查已下载应用的更新，并把所有新版本加入下载队列。")
@@ -114,6 +120,7 @@ struct DownloadAllUpdatesIntent: AppIntent {
     }
 }
 
+@available(iOS 16.0, *)
 struct DownloadStatusIntent: AppIntent {
     static var title: LocalizedStringResource = "获取下载进度"
     static var description = IntentDescription("返回正在进行和等待中的下载任务及其进度。")
@@ -137,6 +144,7 @@ struct DownloadStatusIntent: AppIntent {
     }
 }
 
+@available(iOS 16.0, *)
 struct PauseAllDownloadsIntent: AppIntent {
     static var title: LocalizedStringResource = "暂停全部下载"
     static var description = IntentDescription("暂停正在进行和等待中的下载，进度会保留。")
@@ -149,6 +157,7 @@ struct PauseAllDownloadsIntent: AppIntent {
     }
 }
 
+@available(iOS 16.0, *)
 struct ResumeAllDownloadsIntent: AppIntent {
     static var title: LocalizedStringResource = "继续全部下载"
     static var description = IntentDescription("继续所有已暂停的下载。")
@@ -161,6 +170,7 @@ struct ResumeAllDownloadsIntent: AppIntent {
     }
 }
 
+@available(iOS 16.0, *)
 struct FollowAppIntent: AppIntent {
     static var title: LocalizedStringResource = "关注应用"
     static var description = IntentDescription("关注 App ID 或 App Store 链接对应的应用；有新版本、降价或限免时提醒你。")
@@ -175,6 +185,7 @@ struct FollowAppIntent: AppIntent {
     }
 }
 
+@available(iOS 16.0, *)
 struct ToolShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(intent: SearchAppIntent(), phrases: ["在 \(.applicationName) 搜索应用"],

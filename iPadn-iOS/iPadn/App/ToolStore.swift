@@ -171,7 +171,7 @@ struct ExternalDownloadPrompt: Identifiable, Equatable {
 
 @MainActor
 final class AccountNavigation: ObservableObject {
-    @Published var path = NavigationPath() {
+    @Published var path: [AccountRoute] = [] {
         didSet {
             if path.isEmpty {
                 routes.removeAll()
@@ -188,15 +188,13 @@ final class AccountNavigation: ObservableObject {
     }
 
     func setRoutes(_ newRoutes: [AccountRoute]) {
-        var next = NavigationPath()
-        for route in newRoutes { next.append(route) }
         routes = newRoutes
-        path = next
+        path = newRoutes
     }
 
     func reset() {
         routes.removeAll()
-        if !path.isEmpty { path = NavigationPath() }
+        if !path.isEmpty { path = [] }
     }
 
     func notePresented(_ route: AccountRoute) {
