@@ -18,7 +18,7 @@ jobs:
   build:
     # Public GitHub-hosted macOS 26 arm64 image with Xcode 27, the same
     # toolchain the upstream project builds with.
-    runs-on: macos-26
+    runs-on: macos-15
     timeout-minutes: 90
     defaults:
       run:
