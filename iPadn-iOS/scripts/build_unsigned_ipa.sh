@@ -32,6 +32,7 @@ xcodebuild -resolvePackageDependencies -project "$project_root/iPadn.xcodeproj" 
 xcodebuild -project "$project_root/iPadn.xcodeproj" -scheme iPadn -configuration Release \
   -sdk iphoneos -destination 'generic/platform=iOS' \
   -derivedDataPath "$project_root/build/DerivedData" CODE_SIGNING_ALLOWED=NO \
+  ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS=NO \
   IPADN_MACPKG_LDFLAGS="$macpkg_flags" IPADN_NATIVE_LDFLAGS="$native_flags" build
 package_root="$project_root/build/Export"
 mkdir -p "$package_root/Payload"
