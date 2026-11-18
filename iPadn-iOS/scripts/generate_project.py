@@ -125,7 +125,7 @@ for path in sorted((ROOT / "iPadnTests/Fixtures").glob("*.p12")):
     objects[test_group]["children"].append(reference)
     test_resources.append(add("TestBuild/" + relative, "PBXBuildFile", fileRef=reference))
 tests_resources = add("TestsResources", "PBXResourcesBuildPhase", buildActionMask="2147483647", files=test_resources, runOnlyForDeploymentPostprocessing="0")
-base = {"IPHONEOS_DEPLOYMENT_TARGET": "16.0", "SDKROOT": "iphoneos", "SWIFT_VERSION": "5.0",
+base = {"IPHONEOS_DEPLOYMENT_TARGET": "15.0", "SDKROOT": "iphoneos", "SWIFT_VERSION": "5.0",
         "CLANG_ENABLE_MODULES": "YES", "CLANG_ENABLE_OBJC_ARC": "YES", "ENABLE_STRICT_OBJC_MSGSEND": "YES",
         "GCC_C_LANGUAGE_STANDARD": "gnu17", "CLANG_CXX_LANGUAGE_STANDARD": "gnu++20",
         "SWIFT_STRICT_CONCURRENCY": "targeted", "ENABLE_USER_SCRIPT_SANDBOXING": "YES"}
@@ -145,8 +145,12 @@ app_settings = {"PRODUCT_BUNDLE_IDENTIFIER": "app.local.iPadn", "PRODUCT_NAME": 
                 "IPADN_MACPKG_LDFLAGS": "",
                 # Empty unless scripts/build_unsigned_ipa.sh built the native installation library.
                 "IPADN_NATIVE_LDFLAGS": "",
-                "OTHER_LDFLAGS": ["$(inherited)", "-weak_framework", "Translation", "$(IPADN_MACPKG_LDFLAGS)", "$(IPADN_NATIVE_LDFLAGS)"]}
-test_settings = {"PRODUCT_BUNDLE_IDENTIFIER": "app.local.iPadnTests", "PRODUCT_NAME": "$(TARGET_NAME)", "CODE_SIGN_STYLE": "Automatic",
+                "OTHER_LDFLAGS": ["$(inherited)", "-weak_framework", "Translation",
+                                  # iOS 16+ frameworks, weak-linked so the app still launches on iOS 15.
+                                  "-weak_framework", "ActivityKit", "-weak_framework", "AppIntents", "-weak_framework", "Charts",
+                                  "$(IPADN_MACPKG_LDFLAGS)", "$(IPADN_NATIVE_LDFLAGS)"]}
+test_settings = {"IPHONEOS_DEPLOYMENT_TARGET": "16.0",
+                 "PRODUCT_BUNDLE_IDENTIFIER": "app.local.iPadnTests", "PRODUCT_NAME": "$(TARGET_NAME)", "CODE_SIGN_STYLE": "Automatic",
                  "DEVELOPMENT_TEAM": "", "TARGETED_DEVICE_FAMILY": "1,2", "GENERATE_INFOPLIST_FILE": "YES",
                  "TEST_HOST": "$(BUILT_PRODUCTS_DIR)/iPadn.app/iPadn", "BUNDLE_LOADER": "$(TEST_HOST)",
                  "SWIFT_INCLUDE_PATHS": ["$(inherited)", "$(SRCROOT)/FairPlayCore/include"],
