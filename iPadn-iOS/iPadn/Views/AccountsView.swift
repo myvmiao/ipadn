@@ -30,7 +30,7 @@ struct AccountsView: View {
                         }
                     }.padding(.vertical, 6)
                 } else {
-                    NavigationLink(value: AccountRoute.login) {
+                    CompatNavigationLink(value: AccountRoute.login) {
                         HStack(spacing: 14) {
                             AccountAvatar(account: nil, size: 60)
                             VStack(alignment: .leading, spacing: 3) {
@@ -83,7 +83,7 @@ struct AccountsView: View {
                                       // Text starts after the 20pt margin, 36pt avatar and 12pt gap.
                                       separatorInset: 68, title: "移除") { deleting = account }
                     }
-                    NavigationLink(value: AccountRoute.login) { Label("添加账号", systemImage: "plus") }
+                    CompatNavigationLink(value: AccountRoute.login) { Label("添加账号", systemImage: "plus") }
                 } header: { Text("账号") } footer: {
                     Text(apple.accounts.contains(where: \.needsReauthentication)
                          ? "点按切换下载账号，点按带「重新登录」标记的账号可补全登录凭据，侧滑可移除。"
@@ -94,12 +94,12 @@ struct AccountsView: View {
                 Button { store.selectTab(.purchased) } label: { Label("已购项目", systemImage: "bag") }
                 Button { store.selectTab(.downloads) } label: { Label("下载与安装", systemImage: "arrow.down.circle") }
                 if InstalledAppsView.isSupported {
-                    NavigationLink(value: AccountRoute.installedApps) { Label("本机应用", systemImage: "iphone") }
+                    CompatNavigationLink(value: AccountRoute.installedApps) { Label("本机应用", systemImage: "iphone") }
                         .accessibilityIdentifier("accounts.installed-apps")
-                    NavigationLink(value: AccountRoute.wifiTransfer) { Label("Wi‑Fi 传输", systemImage: "laptopcomputer.and.arrow.down") }
+                    CompatNavigationLink(value: AccountRoute.wifiTransfer) { Label("Wi‑Fi 传输", systemImage: "laptopcomputer.and.arrow.down") }
                         .accessibilityIdentifier("account.wifi-transfer")
                 }
-                NavigationLink(value: AccountRoute.settings(.root)) { Label("设置", systemImage: "gearshape") }
+                CompatNavigationLink(value: AccountRoute.settings(.root)) { Label("设置", systemImage: "gearshape") }
                     .accessibilityIdentifier("accounts.settings")
             }
             if apple.active != nil {
@@ -237,7 +237,7 @@ struct LoginView: View {
             .frame(maxWidth: 460).padding(.horizontal, 24).padding(.vertical, 20)
             .frame(maxWidth: .infinity)
         }
-        .scrollDismissesKeyboard(.interactively)
+        .compatInteractiveKeyboardDismissal()
         .background(Color(.systemGroupedBackground).ignoresSafeArea())
         .navigationTitle("").navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(busy)
@@ -341,7 +341,7 @@ struct ExistingAccountVerificationView: View {
     @State private var sent = false
 
     var body: some View {
-        NavigationStack {
+        CompatStack {
             ScrollView {
                 VerificationStep(account: accountID, code: $code, busy: busy, issue: issue,
                                  submitTitle: AppText.text("验证并继续"), sent: sent, resend: requestCode, submit: verify)

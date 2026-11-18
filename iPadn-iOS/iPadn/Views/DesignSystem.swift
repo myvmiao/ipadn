@@ -475,7 +475,7 @@ struct AppStoreActionButton: View {
                 .frame(minWidth: 74, minHeight: 30)
                 .hidden()
                 .accessibilityHidden(true)
-                .onGeometryChange(for: CGSize.self) { $0.size } action: { size in
+                .compatOnGeometryChange(for: CGSize.self) { $0.size } action: { size in
                     if size.width > 0 { pillWidth = max(74, size.width) }
                     if size.height > 0 { pillHeight = max(30, size.height) }
                 }
@@ -778,7 +778,7 @@ private struct ScrolledUnderBarModifier: ViewModifier {
     let action: (Bool) -> Void
     func body(content: Content) -> some View {
         let threshold: CGFloat = verticalSizeClass == .compact ? 52 : 104
-        content.onGeometryChange(for: Bool.self) { proxy in
+        content.compatOnGeometryChange(for: Bool.self) { proxy in
             proxy.frame(in: .global).maxY < threshold
         } action: { action($0) }
     }
@@ -787,13 +787,13 @@ private struct ScrolledUnderBarModifier: ViewModifier {
 extension View {
     /// Sets `shown` once `active` has lasted a moment and clears it as soon
     /// as it ends, so quick work (a cache hit) never flashes a spinner.
-    func revealAfterDelay(_ active: Bool, into shown: Binding<Bool>, delay: Duration = .milliseconds(300)) -> some View {
+    func revealAfterDelay(_ active: Bool, into shown: Binding<Bool>, delay: TimeInterval = 0.3) -> some View {
         task(id: active) {
             guard active else {
                 if shown.wrappedValue { withAnimation(.easeOut(duration: 0.15)) { shown.wrappedValue = false } }
                 return
             }
-            try? await Task.sleep(for: delay)
+            try? await compatSleep(seconds: delay)
             guard !Task.isCancelled else { return }
             withAnimation(.easeIn(duration: 0.15)) { shown.wrappedValue = true }
         }
@@ -1154,8 +1154,8 @@ struct VerificationCodeField: View {
 
 struct ToolPageStyle: ViewModifier {
     func body(content: Content) -> some View {
-        content.listStyle(.insetGrouped).scrollContentBackground(.hidden)
-            .background(Color(.systemGroupedBackground)).scrollDismissesKeyboard(.interactively)
+        content.listStyle(.insetGrouped).compatHideScrollContentBackground()
+            .background(Color(.systemGroupedBackground)).compatInteractiveKeyboardDismissal()
             .compatibleListSectionSpacing(20)
             .compatibleVerticalContentMargin(.bottom, 20)
     }
@@ -1179,9 +1179,9 @@ struct MarqueeText: View {
             .overlay(alignment: .leading) {
                 Text(text).font(font).lineLimit(1).fixedSize()
                     .offset(x: offset)
-                    .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { textWidth = $0 }
+                    .compatOnGeometryChange(for: CGFloat.self) { $0.size.width } action: { textWidth = $0 }
             }
-            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { boxWidth = $0 }
+            .compatOnGeometryChange(for: CGFloat.self) { $0.size.width } action: { boxWidth = $0 }
             .clipped()
             .mask {
                 HStack(spacing: 0) {
@@ -1198,9 +1198,9 @@ struct MarqueeText: View {
                 offset = 0
                 guard overflow > 1, !reduceMotion else { return }
                 do {
-                    try await Task.sleep(for: .milliseconds(900))
+                    try await compatSleep(milliseconds: Double(900))
                     withAnimation(.easeInOut(duration: max(0.8, Double(overflow) / 35))) { offset = -overflow - 14 }
-                    try await Task.sleep(for: .milliseconds(Int(max(0.8, Double(overflow) / 35) * 1000) + 1200))
+                    try await compatSleep(milliseconds: Double(Int(max(0.8, Double(overflow) / 35) * 1000) + 1200))
                     withAnimation(.easeInOut(duration: 0.45)) { offset = 0 }
                 } catch { offset = 0 }
             }
@@ -1237,7 +1237,7 @@ extension Animation {
 extension View {
     @ViewBuilder func compatibleSymbolReplacement() -> some View {
         if #available(iOS 17, *) { contentTransition(.symbolEffect(.replace)) }
-        else { contentTransition(.opacity) }
+        else { compatContentTransitionOpacity() }
     }
     @ViewBuilder func compatibleSelectionFeedback<T: Equatable>(trigger: T) -> some View {
         if #available(iOS 17, *) { sensoryFeedback(.selection, trigger: trigger) }
@@ -1323,10 +1323,10 @@ extension View {
     @ViewBuilder func compatibleNavigationDestination<Item: Hashable, Destination: View>(
         item: Binding<Item?>, @ViewBuilder destination: @escaping (Item) -> Destination
     ) -> some View {
-        if #available(iOS 17, *) {
+        if #available(iOS 17.0, *) {
             navigationDestination(item: item, destination: destination)
         } else {
-            navigationDestination(isPresented: Binding(
+            compatNavigationDestination(isPresented: Binding(
                 get: { item.wrappedValue != nil },
                 set: { if !$0 { item.wrappedValue = nil } }
             )) {
@@ -1348,11 +1348,11 @@ extension View {
     /// Digits roll down as a countdown ticks, like Telegram's undo timer.
     @ViewBuilder func compatibleCountdownTransition() -> some View {
         if #available(iOS 17, *) { contentTransition(.numericText(countsDown: true)) }
-        else { contentTransition(.numericText()) }
+        else { compatNumericTextTransition() }
     }
 
     @ViewBuilder func compatibleNumericTransition() -> some View {
-        contentTransition(.numericText())
+        compatNumericTextTransition()
     }
 
     @ViewBuilder func compatibleBounce(trigger: some Equatable) -> some View {
@@ -1372,7 +1372,9 @@ extension View {
 }
 
 /// Places views left to right and wraps to a new line when one doesn't fit,
-/// like tags (recent searches).
+/// like tags (recent searches). iOS 16+ only; the one call site falls back to
+/// a horizontal scroller on iOS 15.
+@available(iOS 16.0, *)
 struct ChipFlow: Layout {
     var spacing: CGFloat = 8
 

@@ -332,62 +332,13 @@ struct RootView: View {
     var body: some View {
         Group {
             if sizeClass == .regular {
-                NavigationSplitView {
-                    List(selection: sidebarSelectionBinding) {
-                        Section {
-                            ForEach(destinations, id: \.id) { item in
-                                Label(item.title, systemImage: item.symbol).tag(item.id)
-                            }
-                        }
-
-                    }.navigationTitle("iPadn").navigationSplitViewColumnWidth(min: 220, ideal: 250, max: 300)
-                } detail: {
-                    // Keep every section alive, like the iPhone tab bar does, so
-                    // switching sections keeps navigation, filters and scroll position.
-                    ZStack {
-                        ForEach(destinations, id: \.id) { item in
-                            pageStack(item.id)
-                                .frame(maxWidth: 900).frame(maxWidth: .infinity)
-                                .background(Color(.systemGroupedBackground))
-                                .opacity(tabs.id == item.id ? 1 : 0)
-                                .allowsHitTesting(tabs.id == item.id)
-                                .accessibilityHidden(tabs.id != item.id)
-                        }
-                    }
+                if #available(iOS 16.0, *) {
+                    splitView
+                } else {
+                    tabView
                 }
             } else {
-                TabView(selection: tabSelectionBinding) {
-                    pageStack(.search)
-                        .tabItem { tabLabel(searchDestination) }
-                        .tag(TabID.search)
-                    pageStack(.downloads)
-                        .tabItem { tabLabel(downloadsDestination) }
-                        .badge(downloadsBadge)
-                        .tag(TabID.downloads)
-                    if store.settings.proMode {
-                        pageStack(.packages)
-                            .tabItem { tabLabel(packagesDestination) }
-                            .tag(TabID.packages)
-                    }
-                    pageStack(.purchased)
-                        .tabItem { tabLabel(purchasedDestination) }
-                        .tag(TabID.purchased)
-                    pageStack(.accounts)
-                        .tabItem { tabLabel(accountsDestination) }
-                        .tag(TabID.accounts)
-                }
-                .toolbarBackground(.visible, for: .tabBar)
-                .toolbarBackground(.ultraThinMaterial, for: .tabBar)
-                .background {
-                    TabReselectScroll(
-                        selected: tabs.selection,
-                        selectedID: tabs.id,
-                        reduceMotion: reduceMotion,
-                        kinds: destinations.map(\.kind),
-                        enableVectorIcons: !vectorTabBarUnavailable,
-                        onVectorFallback: { vectorTabBarUnavailable = true }
-                    )
-                }
+                tabView
             }
         }
         .preferredColorScheme(store.settings.appearance == "system" ? nil : store.settings.appearance == "dark" ? .dark : .light)
@@ -496,7 +447,7 @@ struct RootView: View {
             ExistingAccountVerificationView(accountID: request.accountID) {
                 // Runs after the sheet has closed, so a retry can present again.
                 let retry = request.retry
-                Task { @MainActor in try? await Task.sleep(for: .milliseconds(400)); retry?() }
+                Task { @MainActor in try? await compatSleep(milliseconds: Double(400)); retry?() }
             }
         }
         .sheet(item: $store.installingJob) { job in
@@ -505,11 +456,11 @@ struct RootView: View {
                 .environmentObject(downloads)
         }
         .sheet(item: $store.loginPrompt) { prompt in
-            NavigationStack {
+            CompatStack {
                 LoginView(initialAccountID: prompt.accountID) {
                     let retry = prompt.retry
                     store.loginPrompt = nil
-                    Task { @MainActor in try? await Task.sleep(for: .milliseconds(350)); retry?() }
+                    Task { @MainActor in try? await compatSleep(milliseconds: Double(350)); retry?() }
                 }
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
@@ -538,30 +489,91 @@ struct RootView: View {
             if reduceMotion { transaction.animation = nil; transaction.disablesAnimations = true }
         }
     }
+    @available(iOS 16.0, *)
+    @ViewBuilder private var splitView: some View {
+        NavigationSplitView {
+            List(selection: sidebarSelectionBinding) {
+                Section {
+                    ForEach(destinations, id: \.id) { item in
+                        Label(item.title, systemImage: item.symbol).tag(item.id)
+                    }
+                }
+
+            }.navigationTitle("iPadn").navigationSplitViewColumnWidth(min: 220, ideal: 250, max: 300)
+        } detail: {
+            // Keep every section alive, like the iPhone tab bar does, so
+            // switching sections keeps navigation, filters and scroll position.
+            ZStack {
+                ForEach(destinations, id: \.id) { item in
+                    pageStack(item.id)
+                        .frame(maxWidth: 900).frame(maxWidth: .infinity)
+                        .background(Color(.systemGroupedBackground))
+                        .opacity(tabs.id == item.id ? 1 : 0)
+                        .allowsHitTesting(tabs.id == item.id)
+                        .accessibilityHidden(tabs.id != item.id)
+                }
+            }
+        }
+    }
+
+    private var tabView: some View {
+        TabView(selection: tabSelectionBinding) {
+            pageStack(.search)
+                .tabItem { tabLabel(searchDestination) }
+                .tag(TabID.search)
+            pageStack(.downloads)
+                .tabItem { tabLabel(downloadsDestination) }
+                .badge(downloadsBadge)
+                .tag(TabID.downloads)
+            if store.settings.proMode {
+                pageStack(.packages)
+                    .tabItem { tabLabel(packagesDestination) }
+                    .tag(TabID.packages)
+            }
+            pageStack(.purchased)
+                .tabItem { tabLabel(purchasedDestination) }
+                .tag(TabID.purchased)
+            pageStack(.accounts)
+                .tabItem { tabLabel(accountsDestination) }
+                .tag(TabID.accounts)
+        }
+        .compatTabBarChrome()
+        .background {
+            TabReselectScroll(
+                selected: tabs.selection,
+                selectedID: tabs.id,
+                reduceMotion: reduceMotion,
+                kinds: destinations.map(\.kind),
+                enableVectorIcons: !vectorTabBarUnavailable,
+                onVectorFallback: { vectorTabBarUnavailable = true }
+            )
+        }
+    }
+
     @ViewBuilder private func pageStack(_ id: TabID) -> some View {
         switch id {
         case .packages:
-            NavigationStack(path: $packages.path) {
-                PackagesView().navigationDestination(for: PackageRoute.self) { route in
-                    Group {
-                        switch route {
-                        case .source(let id): PackageSourceDetailView(jobID: id)
-                        case .record(let id): DecryptDetailView(recordID: id)
-                        case .file(let url): PackageSourceDetailView(file: url)
-                        case .unlinked(let url): UnlinkedPackageView(url: url)
-                        case .history: DecryptHistoryView()
-                        case .options: DecryptOptionsView()
-                        case .help: DecryptHelpView()
-                        case .log(let id): DecryptLogView(recordID: id)
-                        }
+            CompatPathStack(path: $packages.path) {
+                PackagesView()
+            } destination: { route in
+                Group {
+                    switch route {
+                    case .source(let id): PackageSourceDetailView(jobID: id)
+                    case .record(let id): DecryptDetailView(recordID: id)
+                    case .file(let url): PackageSourceDetailView(file: url)
+                    case .unlinked(let url): UnlinkedPackageView(url: url)
+                    case .history: DecryptHistoryView()
+                    case .options: DecryptOptionsView()
+                    case .help: DecryptHelpView()
+                    case .log(let id): DecryptLogView(recordID: id)
                     }
-                    .onAppear { packages.notePresented(route) }
                 }
+                .onAppear { packages.notePresented(route) }
             }
         case .accounts:
             AccountsTabStack(nav: store.accountNav)
         default:
-            NavigationStack { page(id) }
+            CompatStack { page(id) }
         }
     }
     @ViewBuilder private func tabLabel(_ item: Destination) -> some View {
@@ -585,44 +597,56 @@ struct RootView: View {
 private struct AccountsTabStack: View {
     @ObservedObject var nav: AccountNavigation
     var body: some View {
-        NavigationStack(path: $nav.path) {
+        CompatPathStack(path: $nav.path) {
             AccountsView()
-                .accountNavigationDestinations()
+        } destination: { route in
+            AccountRouteDestination(route: route)
         }
     }
 }
 
-private struct AccountNavigationDestinationsModifier: ViewModifier {
+private struct AccountRouteDestination: View {
     @EnvironmentObject private var store: ToolStore
-    func body(content: Content) -> some View {
-        content.navigationDestination(for: AccountRoute.self) { route in
-            Group {
-                switch route {
-                case .login:
-                    LoginView()
-                case .reauthenticate(let id):
-                    LoginView(initialAccountID: id)
-                case .installedApps:
-                    InstalledAppsView()
-                case .wifiTransfer:
-                    WiFiTransferView()
-                case .settings(let page):
-                    SettingsView(page: page)
-                case .installation:
-                    InstallationSettingsView()
-                case .credentials:
-                    ProModeCredentialsDestination()
-                case .storage:
-                    StorageView()
-                case .versionSource(let id):
-                    VersionSourceRouteDestination(sourceID: id)
-                case .appUpdate:
-                    AppUpdateRouteDestination()
-                case .support:
-                    SupportView()
-                }
+    let route: AccountRoute
+    var body: some View {
+        Group {
+            switch route {
+            case .login:
+                LoginView()
+            case .reauthenticate(let id):
+                LoginView(initialAccountID: id)
+            case .installedApps:
+                InstalledAppsView()
+            case .wifiTransfer:
+                WiFiTransferView()
+            case .settings(let page):
+                SettingsView(page: page)
+            case .installation:
+                InstallationSettingsView()
+            case .credentials:
+                ProModeCredentialsDestination()
+            case .storage:
+                StorageView()
+            case .versionSource(let id):
+                VersionSourceRouteDestination(sourceID: id)
+            case .appUpdate:
+                AppUpdateRouteDestination()
+            case .support:
+                SupportView()
             }
-            .onAppear { store.accountNav.notePresented(route) }
+        }
+        .onAppear { store.accountNav.notePresented(route) }
+    }
+}
+
+private struct AccountNavigationDestinationsModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 16.0, *) {
+            content.navigationDestination(for: AccountRoute.self) { route in
+                AccountRouteDestination(route: route)
+            }
+        } else {
+            content
         }
     }
 }
@@ -772,7 +796,7 @@ private struct RootNoticeOverlay: View {
             UIAccessibility.post(notification: .announcement, argument: AppText.text("\(notice.message)，可以撤销"))
             let remaining = notice.created.addingTimeInterval(UndoNotice.duration).timeIntervalSinceNow
             if remaining > 0 {
-                do { try await Task.sleep(for: .seconds(remaining)) } catch { return }
+                do { try await compatSleep(seconds: Double(remaining)) } catch { return }
             }
             if store.undoNotice?.id == notice.id && store.undoNotice?.revision == notice.revision {
                 store.undoNotice = nil
@@ -787,7 +811,7 @@ private struct RootNoticeOverlay: View {
             #endif
             // Longer notices (setup steps, other languages) stay up longer.
             let seconds = min(8, max(3.5, Double(message.count) / 14))
-            do { try await Task.sleep(for: .seconds(seconds)) } catch { return }
+            do { try await compatSleep(seconds: Double(seconds)) } catch { return }
             if store.infoMessage == message { store.infoMessage = nil }
         }
     }
@@ -936,7 +960,7 @@ struct TabReselectScroll: UIViewRepresentable {
             }
             installTask = Task { @MainActor [weak self] in
                 for delayMs in [16, 40, 100, 220, 450] {
-                    try? await Task.sleep(for: .milliseconds(delayMs))
+                    try? await compatSleep(milliseconds: Double(delayMs))
                     guard !Task.isCancelled, let self else { return }
                     let result = self.attachCurrent()
                     if result == .attached {
@@ -954,7 +978,7 @@ struct TabReselectScroll: UIViewRepresentable {
             guard enableVectorIcons else { return }
             followUpTask?.cancel()
             followUpTask = Task { @MainActor [weak self] in
-                try? await Task.sleep(for: .milliseconds(50))
+                try? await compatSleep(milliseconds: Double(50))
                 guard !Task.isCancelled, let self, self.enableVectorIcons, let bar = self.watched else { return }
                 if TabReselectScroll.attachVectorIcons(in: bar, kinds: self.kinds) == .unsupportedHierarchy {
                     self.install()

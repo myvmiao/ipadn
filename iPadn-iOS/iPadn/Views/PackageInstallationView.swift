@@ -36,7 +36,7 @@ struct PackageInstallationView: View {
     private var isLockedInSystemInstall: Bool { nativePhase?.isCancellable == false }
     private var canCancel: Bool { autoStartPending || busy || isNativeCancellable }
     var body: some View {
-        NavigationStack {
+        CompatStack {
             Form {
                 Section {
                     VStack(spacing: 14) {
@@ -57,7 +57,7 @@ struct PackageInstallationView: View {
                                      : nativePhase != nil ? "正在安装…"
                                      : busy ? "正在准备…"
                                      : openingSystem ? "正在打开安装…" : "安装")
-                                    .contentTransition(.opacity)
+                                    .compatContentTransitionOpacity()
                             }
                             .frame(maxWidth: .infinity)
                             .animation(.easeOut(duration: 0.15), value: busy || openingSystem || cancelling || nativePhase != nil)
@@ -137,7 +137,7 @@ struct PackageInstallationView: View {
                     autoStartPending = true
                     autoStartTask = Task { @MainActor in
                         defer { autoStartPending = false; autoStartTask = nil }
-                        do { try await Task.sleep(for: .milliseconds(500)) } catch { return }
+                        do { try await compatSleep(milliseconds: Double(500)) } catch { return }
                         guard !Task.isCancelled else { return }
                         requestInstallation()
                     }
@@ -296,7 +296,7 @@ struct PackageInstallationView: View {
                         followUpTask?.cancel()
                         followUpTask = Task { @MainActor in
                             if local, !viaBrowser {
-                                do { try await Task.sleep(for: .seconds(6)) } catch { return }
+                                do { try await compatSleep(seconds: Double(6)) } catch { return }
                                 guard attempt == current else { return }
                                 if InstallLog.shared.manifestCount == served {
                                     message = nil; started = false; openingSystem = false
@@ -305,9 +305,9 @@ struct PackageInstallationView: View {
                                         : AppText.text("系统没能连接到 iPadn 的本机安装服务。请在「设置 › 通用 › 关于本机 › 证书信任设置」中确认已开启 iPadn 本机安装 CA；也可以改用一键安装。")
                                     return
                                 }
-                                do { try await Task.sleep(for: .seconds(6)) } catch { return }
+                                do { try await compatSleep(seconds: Double(6)) } catch { return }
                             } else {
-                                do { try await Task.sleep(for: .seconds(12)) } catch { return }
+                                do { try await compatSleep(seconds: Double(12)) } catch { return }
                             }
                             if attempt == current { openingSystem = false }
                         }

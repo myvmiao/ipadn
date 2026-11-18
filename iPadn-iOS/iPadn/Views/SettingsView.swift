@@ -53,7 +53,7 @@ struct SettingsView: View {
         }
     }
     private func pageLink(_ page: Page, _ symbol: String, _ identifier: String) -> some View {
-        NavigationLink(value: AccountRoute.settings(page)) { Label(page.title, systemImage: symbol) }
+        CompatNavigationLink(value: AccountRoute.settings(page)) { Label(page.title, systemImage: symbol) }
             .accessibilityIdentifier(identifier)
     }
     var body: some View {
@@ -66,7 +66,7 @@ struct SettingsView: View {
                 pageLink(.appearance, "paintbrush", "settings.page.appearance")
                 pageLink(.lock, "lock", "settings.page.lock")
                 pageLink(.sources, "clock.arrow.circlepath", "settings.page.sources")
-                NavigationLink(value: AccountRoute.installation) { Label("安装设置", systemImage: "arrow.down.app") }
+                CompatNavigationLink(value: AccountRoute.installation) { Label("安装设置", systemImage: "arrow.down.app") }
                     .accessibilityIdentifier("settings.installation")
                 pageLink(.maintenance, "wrench.and.screwdriver", "settings.page.maintenance")
             }
@@ -233,7 +233,7 @@ struct SettingsView: View {
             if page == .sources {
             ForEach($store.settings.versionSources) { $source in
                 Section {
-                    NavigationLink(value: AccountRoute.versionSource(source.id)) {
+                    CompatNavigationLink(value: AccountRoute.versionSource(source.id)) {
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(source.name).foregroundStyle(.primary)
@@ -279,7 +279,7 @@ struct SettingsView: View {
                 Toggle("专业模式", isOn: $store.settings.proMode)
                     .accessibilityIdentifier("settings.pro-mode")
                 if store.settings.proMode {
-                    NavigationLink(value: AccountRoute.credentials) { Label("账号与设备标识", systemImage: "key") }
+                    CompatNavigationLink(value: AccountRoute.credentials) { Label("账号与设备标识", systemImage: "key") }
                         .accessibilityIdentifier("settings.credentials")
                 }
             } footer: {
@@ -307,7 +307,7 @@ struct SettingsView: View {
                 Text("导出或恢复应用设置、版本来源、关注与应用记录、最近搜索，以及全部 Apple 账号资料、Cookie、登录令牌、密码与设备凭证。导出时可设置密码加密或直接明文导出，不包含已下载的安装包。")
             }
             Section("维护") {
-                NavigationLink(value: AccountRoute.storage) { Label("存储空间", systemImage: "internaldrive") }
+                CompatNavigationLink(value: AccountRoute.storage) { Label("存储空间", systemImage: "internaldrive") }
                     .accessibilityIdentifier("settings.storage")
                 Button("清除历史版本缓存") { clearCache = true }
                     .confirmationDialog("清除历史版本缓存？", isPresented: $clearCache, titleVisibility: .visible) {
@@ -346,9 +346,9 @@ struct SettingsView: View {
                 .padding(.vertical, 2)
                 .accessibilityElement(children: .combine)
                 if let update = store.appUpdate {
-                    NavigationLink(value: AccountRoute.appUpdate) {
+                    CompatNavigationLink(value: AccountRoute.appUpdate) {
                         Label("iPadn \(update.version) 可以更新", systemImage: "arrow.down.app.fill")
-                            .foregroundStyle(.tint).fontWeight(.semibold)
+                            .foregroundStyle(.tint).compatFontWeight(.semibold)
                     }
                     .accessibilityIdentifier("settings.app-update")
                 }
@@ -373,7 +373,7 @@ struct SettingsView: View {
                 Link("项目与更新", destination: URL(string: "https://github.com/mengangs/ipadn")!)
             }
             Section {
-                NavigationLink(value: AccountRoute.support) { SupportRow() }
+                CompatNavigationLink(value: AccountRoute.support) { SupportRow() }
                     .accessibilityIdentifier("settings.support")
             }
             }
@@ -381,7 +381,7 @@ struct SettingsView: View {
         .compatibleOnChange(of: store.settings.directTranslation) { on in
             guard on, page == .appearance else { return }
             Task { @MainActor in
-                try? await Task.sleep(for: .milliseconds(150))
+                try? await compatSleep(milliseconds: Double(150))
                 guard store.settings.directTranslation else { return }
                 withAnimation { reader.scrollTo("settings.translation.resources", anchor: .bottom) }
             }
@@ -631,7 +631,7 @@ struct AddVersionSourceView: View {
     @State private var source = VersionSource(name: AppText.text("新来源"), urlTemplate: "https://", containerKey: "data", reverse: false)
     @State private var error: String?
     var body: some View {
-        NavigationStack {
+        CompatStack {
             VersionSourceEditor(source: $source)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) { Button("取消") { dismiss() } }

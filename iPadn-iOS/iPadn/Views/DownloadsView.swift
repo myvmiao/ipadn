@@ -184,7 +184,7 @@ struct DownloadsView: View {
                 .onAppear { presentedShareURL = file.url }
         }
         .sheet(item: $inspecting, onDismiss: flushPackageNavigation) { item in
-            NavigationStack {
+            CompatStack {
                 if let job = manager.jobs.first(where: { $0.id == item.id }) {
                     Form {
                         Section { AppRow(app: packageDisplayApp(job)); TaskStatusPill(status: job.status) }
@@ -224,7 +224,7 @@ struct DownloadsView: View {
                                         }
                                     }
                                 }
-                                Section { ShareLink(item: file) { Label("导出文件", systemImage: "square.and.arrow.up") } }
+                                Section { CompatShareLink(item: file) { Label("导出文件", systemImage: "square.and.arrow.up") } }
                                 if store.settings.proMode {
                                     decryptSection(job: job, file: file)
                                 }
@@ -233,7 +233,7 @@ struct DownloadsView: View {
                     }.toolPage().navigationTitle("任务详情").navigationBarTitleDisplayMode(.inline)
                         .toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { inspecting = nil } } }
                 }
-            }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+            }.compatPresentationDetents([.medium, .large]).compatPresentationDragIndicator(.visible)
         }
         .alert("通过链接下载", isPresented: $addLink) {
             TextField("https://…", text: $link).textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
@@ -919,7 +919,7 @@ struct DownloadTaskRow: View {
         }
         .task(id: celebrating) {
             guard celebrating else { return }
-            try? await Task.sleep(for: .milliseconds(1100))
+            try? await compatSleep(milliseconds: Double(1100))
             guard !Task.isCancelled else { return }
             celebrating = false
         }
@@ -1036,8 +1036,8 @@ private struct AddDownloadSheet: View {
         }
         .padding(24)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .presentationDetents([.height(hasActiveJobs ? 380 : 260), .large])
-        .presentationDragIndicator(.visible)
+        .compatPresentationDetents([.height(hasActiveJobs ? 380 : 260), .large])
+        .compatPresentationDragIndicator(.visible)
         .sheet(item: $picker) { kind in
             PackageDocumentPicker { result in
                 picker = nil

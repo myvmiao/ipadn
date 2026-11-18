@@ -100,7 +100,7 @@ struct SupportView: View {
             } header: { Text("其他支持方式") }
         }
         .toolPage().navigationTitle("支持 iPadn").navigationBarTitleDisplayMode(.inline)
-        .task { if !reduceMotion { try? await Task.sleep(for: .milliseconds(350)); beat += 1 } }
+        .task { if !reduceMotion { try? await compatSleep(milliseconds: Double(350)); beat += 1 } }
     }
 
     private var header: some View {

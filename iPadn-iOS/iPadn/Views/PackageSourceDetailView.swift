@@ -67,7 +67,7 @@ struct PackageSourceDetailView: View {
                 Section("处理记录") {
                     ForEach(attempts) { record in
                         let style = DecryptOutcomeStyle(record)
-                        NavigationLink(value: PackageRoute.record(record.id)) {
+                        CompatNavigationLink(value: PackageRoute.record(record.id)) {
                             HStack(spacing: 12) {
                                 Image(systemName: style.symbol)
                                     .foregroundStyle(style.color)

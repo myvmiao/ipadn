@@ -32,7 +32,7 @@ enum AutoInstall {
         guard !top.isBeingDismissed else { return }
         if top is UIAlertController || String(describing: type(of: top)).contains("PackageInstallation") {
             Task { @MainActor in
-                try? await Task.sleep(for: .milliseconds(600))
+                try? await compatSleep(milliseconds: Double(600))
                 presentNext(store)
             }
             return
@@ -50,7 +50,7 @@ enum AutoInstall {
         sheet.closed = {
             showing = nil
             Task { @MainActor in
-                try? await Task.sleep(for: .milliseconds(400))
+                try? await compatSleep(milliseconds: Double(400))
                 presentNext(store)
             }
         }

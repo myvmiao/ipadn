@@ -18,7 +18,7 @@ struct StandalonePackageMeta: Equatable {
 @MainActor
 final class FairPlayPresentation: ObservableObject {
     static let shared = FairPlayPresentation()
-    @Published var path = NavigationPath() {
+    @Published var path: [PackageRoute] = [] {
         didSet {
             if path.isEmpty {
                 routes.removeAll()
@@ -54,10 +54,8 @@ final class FairPlayPresentation: ObservableObject {
     var records: DecryptRecordStore { .shared }
 
     func navigate(_ route: PackageRoute) {
-        var next = NavigationPath()
-        next.append(route)
         routes = [route]
-        path = next
+        path = [route]
         navigationRevision = UUID()
     }
 
@@ -75,7 +73,7 @@ final class FairPlayPresentation: ObservableObject {
     /// Resets the package stack without bumping `navigationRevision` (used when leaving Pro Mode).
     func clearPath() {
         routes.removeAll()
-        if !path.isEmpty { path = NavigationPath() }
+        if !path.isEmpty { path = [] }
     }
 
     func notePresented(_ route: PackageRoute) {

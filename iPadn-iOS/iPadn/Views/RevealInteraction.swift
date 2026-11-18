@@ -628,7 +628,7 @@ private final class RevealDriver: NSObject, ObservableObject {
         guard blocksPress else { return }
         pressReset?.cancel()
         pressReset = Task { @MainActor [weak self] in
-            do { try await Task.sleep(for: .milliseconds(300)) } catch { return }
+            do { try await compatSleep(milliseconds: Double(300)) } catch { return }
             self?.blocksPress = false
         }
     }
@@ -873,8 +873,8 @@ private struct RevealDeleteModifier: ViewModifier {
                 bottom: grouping == .standalone ? 24 : 14 * driver.rounding,
                 verticalInset: grouping == .standalone ? verticalPadding : 0
             ))
-            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
-            .onGeometryChange(for: CGFloat?.self) { geometry in
+            .compatOnGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
+            .compatOnGeometryChange(for: CGFloat?.self) { geometry in
                 isRevealing ? geometry.frame(in: .global).minY : nil
             } action: { y in
                 if let y, let previous = lastVisibleY, abs(y - previous) > 1 { RevealCoordinator.shared.clear(id, immediately: false) }
@@ -928,7 +928,7 @@ private struct RevealDeleteModifier: ViewModifier {
                 RevealCoordinator.shared.clear(id, immediately: true)
                 driver.close(immediately: true)
             }
-            .accessibilityActions {
+            .compatAccessibilityActions {
                 ForEach(Array(actions.enumerated()), id: \.offset) { _, item in
                     Button(item.title) { if enabled { commit(item) } }
                 }

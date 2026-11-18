@@ -256,7 +256,7 @@ struct AppDetailView: View {
                     CardSection {
                         Text(displayed).font(.subheadline)
                             .lineLimit(showDescription ? nil : 4).textSelection(.enabled)
-                            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: {
+                            .compatOnGeometryChange(for: CGFloat.self) { $0.size.height } action: {
                                 collapsedDescriptionHeight = $0
                             }
                             .background {
@@ -264,7 +264,7 @@ struct AppDetailView: View {
                                     .fixedSize(horizontal: false, vertical: true)
                                     .hidden()
                                     .accessibilityHidden(true)
-                                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: {
+                                    .compatOnGeometryChange(for: CGFloat.self) { $0.size.height } action: {
                                         fullDescriptionHeight = $0
                                     }
                             }
@@ -379,7 +379,7 @@ struct AppDetailView: View {
         } message: {
             Text("输入 DMG、PKG 或 ZIP 安装包的下载链接。")
         }
-        .navigationDestination(isPresented: $showLogin) {
+        .compatNavigationDestination(isPresented: $showLogin) {
             LoginView(initialAccountID: reauthenticationID, onSignedIn: {
                 reauthenticationID = nil
             })
@@ -514,7 +514,7 @@ struct AppDetailView: View {
                     primaryButton
                     Spacer(minLength: 0)
                     if let storeURL {
-                        ShareLink(item: storeURL) { Image(systemName: "square.and.arrow.up").font(.title3) }
+                        CompatShareLink(item: storeURL) { Image(systemName: "square.and.arrow.up").font(.title3) }
                             .buttonStyle(.borderless).accessibilityLabel("分享商店链接")
                     }
                 }
@@ -832,22 +832,14 @@ struct AppDetailView: View {
         let expanded = expandedNotes.contains(version.id)
         let size = info?.packageSize.map { $0.byteLabel }
         let readingSize = size == nil && metadataLoading[version.id] != nil
-        let headerLayout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
-            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 12))
-        let factsLayout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
-            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 12))
-        let idNotesLayout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
-            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
+        let vertical = dynamicTypeSize.isAccessibilitySize
         return HStack(alignment: .top, spacing: 12) {
             if store.settings.store.platform.supportsIPA && store.settings.showHistoryIcons {
                 VersionHistoryIcon(app: app, versionID: version.id, available: info?.iconAvailable,
                                    loading: metadataLoading[version.id] != nil, context: versionsKey)
             }
             VStack(alignment: .leading, spacing: 6) {
-                headerLayout {
+                AdaptiveStack(isVertical: vertical, verticalSpacing: 8, horizontalSpacing: 12) {
                     Text(known ? "版本 \(name)" : reading ? "版本 0.0.0" : "未知版本")
                         .font(.body.weight(.semibold))
                         .redacted(reason: reading ? .placeholder : [])
@@ -871,7 +863,7 @@ struct AppDetailView: View {
                         .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                factsLayout {
+                AdaptiveStack(isVertical: vertical, verticalSpacing: 4, horizontalSpacing: 12) {
                     if let date {
                         Text(estimatedDate ? LocalizedStringKey("包内日期：\(date)") : LocalizedStringKey("\(date)"))
                             .accessibilityIdentifier("detail.version.date." + version.id)
@@ -884,7 +876,7 @@ struct AppDetailView: View {
                     }
                 }
                 .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
-                idNotesLayout {
+                AdaptiveStack(isVertical: vertical, verticalSpacing: 4, horizontalSpacing: 8) {
                     Text("版本 ID \(version.id)")
                         .font(.caption.monospacedDigit()).foregroundStyle(.tertiary)
                         .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
@@ -1190,7 +1182,7 @@ private struct ScreenshotStrip: View {
             }
             .compatibleHorizontalScrollMargins(margin)
             .compatibleViewAlignedScrolling()
-            .scrollDisabled(placeholders)
+            .compatScrollDisabled(placeholders)
             HStack(spacing: 8) {
                 DeviceGlyph(platform: platform)
                 Text(platform == .iOS ? "iPhone" : platform == .tvOS ? "Apple TV" : platform.title)
@@ -1288,7 +1280,6 @@ struct CardSection<Content: View, Header: View>: View {
             header.padding(.horizontal, Self.pageMargin + 20)
             if plain { content } else {
                 _VariadicView.Tree(CardRows()) { content }
-                    .labeledContentStyle(CardLabeledContentStyle())
                     .background(Color(.secondarySystemGroupedBackground),
                                 in: RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
                     .padding(.horizontal, Self.pageMargin)
@@ -1325,16 +1316,8 @@ private struct CardRows: _VariadicView_UnaryViewRoot {
     }
 }
 
-/// Label on the left, value on the right, as in a list.
-private struct CardLabeledContentStyle: LabeledContentStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
-            configuration.label.foregroundStyle(.primary)
-            Spacer(minLength: 12)
-            configuration.content.foregroundStyle(.secondary).multilineTextAlignment(.trailing)
-        }
-    }
-}
+/// Label on the left, value on the right, as in a list. The shared
+/// `LabeledContent` backport renders rows this way on all OS versions.
 
 /// Screenshots already loaded by the strip, so the full-screen view opens
 /// on them at once.
@@ -1511,7 +1494,7 @@ private struct DeveloperAppsStrip: View {
 private extension View {
     @ViewBuilder func measureLegacyWidth(_ width: Binding<CGFloat>) -> some View {
         if #available(iOS 17, *) { self }
-        else { onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width.wrappedValue = $0 } }
+        else { compatOnGeometryChange(for: CGFloat.self) { $0.size.width } action: { width.wrappedValue = $0 } }
     }
 }
 

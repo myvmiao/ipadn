@@ -20,7 +20,7 @@ struct TranslateButton: View {
         let sample = String(text.prefix(600))
         guard !sample.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               let found = DetectedLanguageCache.shared.dominantLanguage(for: sample) else { return false }
-        let mine = AppText.locale.language.languageCode?.identifier ?? "en"
+        let mine = AppText.locale.compatLanguageCode ?? "en"
         return !found.hasPrefix(mine)
     }
 

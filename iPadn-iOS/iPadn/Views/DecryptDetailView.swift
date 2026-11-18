@@ -31,10 +31,10 @@ struct DecryptDetailView: View {
                 filesSection(record)
                 if !live { informationSection(record) }
                 Section {
-                    NavigationLink(value: PackageRoute.log(record.id)) {
+                    CompatNavigationLink(value: PackageRoute.log(record.id)) {
                         Label("技术日志与详情", systemImage: "text.alignleft")
                     }
-                    NavigationLink(value: PackageRoute.help) {
+                    CompatNavigationLink(value: PackageRoute.help) {
                         Label("使用说明与兼容性", systemImage: "questionmark.circle")
                     }
                 }

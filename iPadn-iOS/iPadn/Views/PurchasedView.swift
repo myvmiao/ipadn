@@ -139,7 +139,7 @@ struct PurchasedView: View {
                                 Label(batchProgress.map { AppText.text("正在添加 \($0.done)/\($0.total)") }
                                         ?? AppText.text("全部备份（\(backups.count) 个）"),
                                       systemImage: "square.and.arrow.down.on.square")
-                                    .fontWeight(.semibold)
+                                    .compatFontWeight(.semibold)
                             }
                             .disabled(batchProgress != nil)
                             .accessibilityIdentifier("purchased.backup-all")
@@ -227,7 +227,7 @@ struct PurchasedView: View {
                 Section { EmptyState(title: "尚未登录", message: "登录后即可查看你获取过的应用。", symbol: "person.crop.circle.badge.checkmark", actionTitle: "登录账号", action: { showLogin = true }) }
             }
         }
-        .navigationDestination(isPresented: $showLogin) { LoginView() }
+        .compatNavigationDestination(isPresented: $showLogin) { LoginView() }
         .sheet(item: $share) { file in ShareSheet(items: [file.url]) }
         .task(id: apple.activeID) { await store.ensureOwnedLoaded() }
         .toolPage()
@@ -236,7 +236,7 @@ struct PurchasedView: View {
         .refreshable { if apple.active != nil { await store.refreshOwned() } }
         .task(id: term) {
             // Clearing is instant; typing waits for a short pause.
-            if !term.isEmpty { try? await Task.sleep(for: .milliseconds(250)) }
+            if !term.isEmpty { try? await compatSleep(milliseconds: Double(250)) }
             guard !Task.isCancelled else { return }
             query = term
         }

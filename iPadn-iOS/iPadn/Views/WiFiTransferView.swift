@@ -52,7 +52,7 @@ struct WiFiTransferView: View {
                             Button("拷贝地址", systemImage: "doc.on.doc") {
                                 UIPasteboard.general.string = address.absoluteString; UX.feedback()
                             }
-                            ShareLink(item: address) { Label("分享", systemImage: "square.and.arrow.up") }
+                            CompatShareLink(item: address) { Label("分享", systemImage: "square.and.arrow.up") }
                         }
                         .buttonStyle(.bordered)
                     }
@@ -118,7 +118,7 @@ struct WiFiTransferView: View {
         .task(id: address) {
             // Stops after ten minutes without a download.
             while address != nil, !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(30))
+                try? await compatSleep(seconds: Double(30))
                 if address != nil, Date().timeIntervalSince(lastActivity) > Self.idleLimit {
                     stop(AppText.text("闲置超过 10 分钟，传输已停止。"))
                 }
@@ -155,7 +155,7 @@ struct WiFiTransferView: View {
             if let previous = sessionPort {
                 // After a suspension the old listener can hold the port a moment longer.
                 for attempt in 0..<3 where reused == nil && !Task.isCancelled {
-                    if attempt > 0 { try? await Task.sleep(for: .milliseconds(120)) }
+                    if attempt > 0 { try? await compatSleep(milliseconds: Double(120)) }
                     reused = try? await next.start(items: items, port: previous)
                 }
             }

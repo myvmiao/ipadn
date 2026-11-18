@@ -27,7 +27,7 @@ struct BackupExportSheet: View {
     }
 
     var body: some View {
-        NavigationStack {
+        CompatStack {
             Form {
                 Section {
                     LabeledContent("应用与设置", value: AppText.text("设置、版本来源、关注与搜索"))
@@ -125,7 +125,7 @@ struct EncryptedBackupPasswordSheet: View {
     @State private var errorMessage: String?
 
     var body: some View {
-        NavigationStack {
+        CompatStack {
             Form {
                 Section {
                     SecureField("输入备份密码", text: $password)
@@ -178,7 +178,7 @@ struct UnifiedBackupImportSheet: View {
     let onCancel: () -> Void
 
     var body: some View {
-        NavigationStack {
+        CompatStack {
             Form {
                 Section {
                     LabeledContent("备份内容", value: summaryText)

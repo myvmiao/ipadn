@@ -173,7 +173,7 @@ struct PackagesView: View {
                         Button("删除所选", systemImage: "trash", role: .destructive) {
                             confirmingBatchDelete = true
                         }
-                        .fontWeight(.semibold)
+                        .compatFontWeight(.semibold)
                         .disabled(selection.isEmpty)
                     }
                     .padding(.horizontal, 20)
@@ -463,7 +463,7 @@ struct PackagesView: View {
                 color: status.color
             )
             selectableRow(.job(job.id), disabled: ui.protects(job.id), content: { row }) {
-                NavigationLink(value: PackageRoute.source(job.id)) { row }
+                CompatNavigationLink(value: PackageRoute.source(job.id)) { row }
                     .revealActions(
                         id: "pkg.job." + job.id.uuidString,
                         enabled: !ui.protects(job.id),
@@ -519,7 +519,7 @@ struct PackagesView: View {
         )
 
         return selectableRow(.standalone(url), disabled: ui.protects(url: url), content: { row }) {
-            NavigationLink(value: PackageRoute.file(url)) { row }
+            CompatNavigationLink(value: PackageRoute.file(url)) { row }
                 .revealActions(
                     id: "pkg.file." + PackageOutputPolicy.canonicalPath(url),
                     enabled: !ui.protects(url: url),
@@ -589,7 +589,7 @@ struct PackagesView: View {
                             symbol: "questionmark.circle"
                         )
                         selectableRow(.orphan(url), disabled: service.isRunning, content: { row }) {
-                            NavigationLink(value: PackageRoute.unlinked(url)) { row }
+                            CompatNavigationLink(value: PackageRoute.unlinked(url)) { row }
                                 .revealActions(
                                     id: "pkg.orphan." + url.lastPathComponent,
                                     enabled: !service.isRunning,
@@ -633,7 +633,7 @@ struct PackagesView: View {
         )
 
         return selectableRow(.output(record.id), disabled: service.isRunning, content: { row }) {
-            NavigationLink(value: PackageRoute.record(record.id)) { row }
+            CompatNavigationLink(value: PackageRoute.record(record.id)) { row }
                 .revealActions(
                     id: "pkg.out." + record.id.uuidString,
                     enabled: !service.isRunning,

@@ -66,7 +66,7 @@ struct RegionPriceView: View {
         .sheet(isPresented: $editingRegions, onDismiss: {
             if store.settings.priceRegions != loadedRegions { reload += 1 }
         }) {
-            NavigationStack { RegionSelectionView(selection: $store.settings.priceRegions) }
+            CompatStack { RegionSelectionView(selection: $store.settings.priceRegions) }
         }
         .revealAfterDelay(loading, into: $showSpinner)
         .task(id: reload) { await load() }

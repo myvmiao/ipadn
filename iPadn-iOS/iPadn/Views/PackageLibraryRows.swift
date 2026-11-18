@@ -90,7 +90,7 @@ struct DecryptLiveSummary: View {
             let record = records.records.first(where: { $0.id == id })
             let icon = record.flatMap { ui.iconURL(for: $0, manager: manager) }
             Section("正在处理") {
-                NavigationLink(value: PackageRoute.record(id)) {
+                CompatNavigationLink(value: PackageRoute.record(id)) {
                     VStack(alignment: .leading, spacing: 10) {
                         HStack(spacing: 12) {
                             AppIcon(url: icon, size: 48)

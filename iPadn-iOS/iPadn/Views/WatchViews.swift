@@ -144,6 +144,18 @@ private struct TargetPriceRow: View {
 struct PriceHistoryChart: View {
     let record: WatchRecord
     var body: some View {
+        if #available(iOS 16.0, *) {
+            PriceHistoryChartiOS16(record: record)
+        } else {
+            PriceHistoryChartFallback(record: record)
+        }
+    }
+}
+
+@available(iOS 16.0, *)
+private struct PriceHistoryChartiOS16: View {
+    let record: WatchRecord
+    var body: some View {
         // Prices hold until the next change: draw steps, extended to today.
         let points = record.history + (record.history.last.map { [PricePoint(date: max(Date(), $0.date), price: $0.price)] } ?? [])
         let peak = points.map(\.price).max() ?? 0
@@ -162,6 +174,49 @@ struct PriceHistoryChart: View {
             }
         }
         .frame(height: 160)
+        .accessibilityLabel("价格走势")
+    }
+}
+
+/// iOS 15 fallback for the price history: the same step line, drawn with a
+/// plain `Path` instead of Swift Charts (which is iOS 16+).
+private struct PriceHistoryChartFallback: View {
+    let record: WatchRecord
+
+    var body: some View {
+        let points = record.history + (record.history.last.map { [PricePoint(date: max(Date(), $0.date), price: $0.price)] } ?? [])
+        let peak = points.map(\.price).max() ?? 0
+        let ceiling = peak > 0 ? peak * 1.12 : 10
+        GeometryReader { proxy in
+            let inset: CGFloat = 8
+            let width = max(1, proxy.size.width - inset * 2)
+            let height = max(1, proxy.size.height - inset * 2)
+            let start = points.first?.date ?? Date()
+            let end = points.last?.date ?? start
+            let span = max(1, end.timeIntervalSince(start))
+            Path { path in
+                guard let first = points.first else { return }
+                var previous = CGPoint(
+                    x: inset + CGFloat(first.date.timeIntervalSince(start) / span) * width,
+                    y: inset + height - CGFloat(first.price / ceiling) * height
+                )
+                path.move(to: previous)
+                for point in points.dropFirst() {
+                    let x = inset + CGFloat(point.date.timeIntervalSince(start) / span) * width
+                    let y = inset + height - CGFloat(point.price / ceiling) * height
+                    path.addLine(to: CGPoint(x: x, y: previous.y))
+                    path.addLine(to: CGPoint(x: x, y: y))
+                    previous = CGPoint(x: x, y: y)
+                }
+            }
+            .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 2, lineJoin: .round))
+        }
+        .frame(height: 160)
+        .overlay(alignment: .topLeading) {
+            Text(WatchService.format(peak, currency: record.currency))
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
         .accessibilityLabel("价格走势")
     }
 }

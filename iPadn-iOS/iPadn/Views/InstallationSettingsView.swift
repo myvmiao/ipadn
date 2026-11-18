@@ -147,7 +147,7 @@ struct InstallationSettingsView: View {
             .compatibleOnChange(of: scenePhase) { phase in if phase != .active, working == .profile { working = nil } }
             .sheet(isPresented: $showingPairingGuide) {
                 PairingGuideView(pairing: pairing)
-                    .presentationDetents([.medium, .large])
+                    .compatPresentationDetents([.medium, .large])
                     .interactiveDismissDisabled(pairing.phase.isActive)
             }
             .compatibleOnChange(of: pairing.phase) { phase in
@@ -180,7 +180,7 @@ struct InstallationSettingsView: View {
                 if !isImporting { scheduleImportPresentation() }
             }
             .sheet(isPresented: Binding(get: { certificateData != nil }, set: { if !$0 { certificateData = nil; password = "" } })) {
-                NavigationStack {
+                CompatStack {
                     Form {
                         Section { SecureField("证书密码（可留空）", text: $password) } footer: {
                             Text("证书仅保存在这台设备上。")
@@ -191,7 +191,7 @@ struct InstallationSettingsView: View {
                             ToolbarItem(placement: .cancellationAction) { Button("取消") { certificateData = nil; password = ""; issue = nil } }
                             ToolbarItem(placement: .confirmationAction) { Button("导入") { saveCertificate() } }
                         }
-                }.presentationDetents([.medium, .large])
+                }.compatPresentationDetents([.medium, .large])
             }
             .actionConfirmation(isPresented: $removingPairingFile, title: "移除配对文件？", message: "之后使用原生安装需要重新导入。", confirmTitle: "移除", destructive: true) {
                 do { try NativeInstaller.removePairingFile(); hasPairingFile = NativeInstaller.hasPairingFile; store.infoMessage = AppText.text("配对文件已移除。") }
@@ -263,7 +263,7 @@ struct InstallationSettingsView: View {
         Task {
             // The spinner stays until Settings opens with the profile (the app
             // leaves the screen) or a few seconds pass.
-            defer { busy = false; Task { try? await Task.sleep(for: .seconds(8)); if working == .profile { working = nil } } }
+            defer { busy = false; Task { try? await compatSleep(seconds: Double(8)); if working == .profile { working = nil } } }
             do {
                 guard let profile = try await Task.detached(priority: .userInitiated, operation: {
                     try InstallationCertificate.localProfile()
@@ -409,7 +409,7 @@ private struct PairingGuideView: View {
         }
     }
     var body: some View {
-        NavigationStack {
+        CompatStack {
             Form {
                 Section {
                     guideRow(1, "打开「设置」前往开发者模式", "点右上角「打开设置」会打开本应用设置页，请点左上角「< 设置」返回首页 ›「隐私与安全性」›「开发者模式」› 选「iPadn」")

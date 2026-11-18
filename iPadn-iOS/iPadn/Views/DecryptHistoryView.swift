@@ -71,7 +71,7 @@ struct DecryptHistoryView: View {
                                 .buttonStyle(.plain)
                                 .disabled(isActive)
                             } else {
-                                NavigationLink(value: PackageRoute.record(record.id)) {
+                                CompatNavigationLink(value: PackageRoute.record(record.id)) {
                                     row(record)
                                 }
                                 .revealDelete(id: "history." + record.id.uuidString, enabled: !isActive, fills: true) {
@@ -116,7 +116,7 @@ struct DecryptHistoryView: View {
                         .disabled(records.records.allSatisfy { service.isRunning && service.activeRecordID == $0.id })
 
                     Button("移除所选", role: .destructive) { confirmingSelected = true }
-                        .fontWeight(.semibold)
+                        .compatFontWeight(.semibold)
                         .disabled(selected.isEmpty)
                 }
                 .padding(.horizontal, 20)

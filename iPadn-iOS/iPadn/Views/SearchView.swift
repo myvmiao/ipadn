@@ -23,7 +23,7 @@ struct SearchView: View {
                     .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 2, trailing: 12))
                 SearchInput(text: $store.searchText, placeholder: "应用名称、App ID 或链接", capsule: true,
                             submit: { store.search() }, clear: { store.clearSearch() })
-                    .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { searchCardWidth = $0 }
+                    .compatOnGeometryChange(for: CGFloat.self) { $0.size.width } action: { searchCardWidth = $0 }
                     .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) { regionPicker; platformPicker }
@@ -112,18 +112,30 @@ struct SearchView: View {
         return (searchCardWidth - recentFooterWidth) / 2
     }
 
+    @ViewBuilder private var historyChips: some View {
+        ForEach(Array(store.searchHistory.prefix(12))) { item in
+            // Tap searches; a long press lifts just this chip with a Delete menu.
+            MenuChip(title: item.term, symbol: "magnifyingglass", identifier: "history.\(item.id)",
+                     deleteTitle: AppText.text("删除")) {
+                store.search(item.term)
+            } onDelete: {
+                withAnimation { store.removeHistory(item.term) }
+            }
+        }
+    }
+
     @ViewBuilder private var suggestions: some View {
         if !store.searchHistory.isEmpty {
             // Short terms as chips that wrap, rather than one wide row each.
             Section {
-                ChipFlow(spacing: 8) {
-                    ForEach(Array(store.searchHistory.prefix(12))) { item in
-                        // Tap searches; a long press lifts just this chip with a Delete menu.
-                        MenuChip(title: item.term, symbol: "magnifyingglass", identifier: "history.\(item.id)",
-                                 deleteTitle: AppText.text("删除")) {
-                            store.search(item.term)
-                        } onDelete: {
-                            withAnimation { store.removeHistory(item.term) }
+                Group {
+                    if #available(iOS 16.0, *) {
+                        ChipFlow(spacing: 8) { historyChips }
+                    } else {
+                        // `Layout` is iOS 16; a single scrolling row keeps the
+                        // chips reachable on iOS 15.
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) { historyChips }
                         }
                     }
                 }
@@ -135,7 +147,7 @@ struct SearchView: View {
             } header: {
                 VStack(spacing: 0) {
                     Color.clear.frame(height: 0)
-                        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { recentHeaderWidth = $0 }
+                        .compatOnGeometryChange(for: CGFloat.self) { $0.size.width } action: { recentHeaderWidth = $0 }
                     HStack(alignment: .firstTextBaseline, spacing: 12) {
                         Text("最近搜索").font(.title3.weight(.bold)).foregroundStyle(.primary).textCase(nil)
                             .fixedSize(horizontal: false, vertical: true)
@@ -154,7 +166,7 @@ struct SearchView: View {
             } footer: {
                 VStack(alignment: .leading, spacing: 0) {
                     Color.clear.frame(height: 0)
-                        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { recentFooterWidth = $0 }
+                        .compatOnGeometryChange(for: CGFloat.self) { $0.size.width } action: { recentFooterWidth = $0 }
                     Text("长按可删除单条记录。")
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .fixedSize(horizontal: false, vertical: true)

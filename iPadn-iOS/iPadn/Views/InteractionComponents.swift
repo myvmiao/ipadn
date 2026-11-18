@@ -23,8 +23,8 @@ struct ActionConfirmationView: View {
                     .accessibilityIdentifier("confirmation.scroll")
             } else { confirmation }
         }
-        .presentationDetents(typeSize.isAccessibilitySize ? [.large] : [.height(compactDetentHeight), .large])
-        .presentationDragIndicator(.visible).compatiblePresentationCornerRadius(28)
+        .compatPresentationDetents(typeSize.isAccessibilitySize ? [.large] : [.height(compactDetentHeight), .large])
+        .compatPresentationDragIndicator(.visible).compatiblePresentationCornerRadius(28)
     }
     private var confirmation: some View {
         VStack(alignment: .leading, spacing: 18) {
