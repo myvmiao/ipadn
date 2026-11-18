@@ -388,7 +388,7 @@ enum ManifestBuilder {
                 .replacingOccurrences(of: "'", with: "&#39;")
         }
         let link = escape(installURL.absoluteString), title = escape(name)
-        let language = AppText.locale.language.languageCode?.identifier ?? "en"
+        let language = AppText.locale.compatLanguageCode ?? "en"
         return """
         <!doctype html><html lang="\(language)"><head><meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">

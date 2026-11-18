@@ -254,7 +254,7 @@ enum AppleAuthentication {
     static func authenticate(endpoint: URL, body: Data, headers: [String: String] = [:],
         makeHeaders: (() async throws -> [String: String])? = nil,
         send: (URL, Data, [String: String]) async throws -> (Data, HTTPURLResponse),
-        pause: () async throws -> Void = { try await Task.sleep(for: .seconds(1)) },
+        pause: () async throws -> Void = { try await compatSleep(seconds: Double(1)) },
         report: (String) -> Void) async throws -> ([String: Any], HTTPURLResponse) {
         guard isEndpoint(endpoint) else { throw ToolError.message(AppText.text("Apple 登录地址无效")) }
         // A transport retry keeps exactly the same signed payload, including attempt.

@@ -334,7 +334,7 @@ final class DownloadManager: NSObject, ObservableObject {
               let index = jobs.firstIndex(where: { $0.id == id && $0.status == .running }) else { return }
         jobs[index].status = .processing
         Task { @MainActor [weak self] in
-            do { try await Task.sleep(for: .milliseconds(350)) } catch { return }
+            do { try await compatSleep(milliseconds: Double(350)) } catch { return }
             guard let self, let index = self.jobs.firstIndex(where: { $0.id == id && $0.status == .processing }) else { return }
             self.jobs[index].downloaded = self.jobs[index].expected
             self.jobs[index].status = .completed
@@ -807,7 +807,7 @@ final class DownloadManager: NSObject, ObservableObject {
         recentlyRestoredIDs.formUnion(ids)
         restoredClearTask?.cancel()
         restoredClearTask = Task { @MainActor [weak self] in
-            do { try await Task.sleep(for: .milliseconds(900)) } catch { return }
+            do { try await compatSleep(milliseconds: Double(900)) } catch { return }
             self?.recentlyRestoredIDs.removeAll()
         }
     }
@@ -832,7 +832,7 @@ final class DownloadManager: NSObject, ObservableObject {
         guard let receipt = undoRemovals[token] else { return }
         let delay = max(0, receipt.expires.timeIntervalSinceNow)
         undoRemovalTimers[token] = Task { @MainActor [weak self] in
-            do { try await Task.sleep(for: .seconds(delay)) } catch { return }
+            do { try await compatSleep(seconds: Double(delay)) } catch { return }
             self?.finishRemovalUndo(token)
         }
     }
@@ -929,7 +929,7 @@ final class DownloadManager: NSObject, ObservableObject {
         if undoToken != nil && (!removingIDs.isEmpty || loadingJobs) {
             let queueDeadline = Date().addingTimeInterval(2)
             while (!removingIDs.isEmpty || loadingJobs) && Date() < queueDeadline {
-                try await Task.sleep(for: .milliseconds(20))
+                try await compatSleep(milliseconds: Double(20))
             }
             try Task.checkCancellation()
         }
@@ -948,7 +948,7 @@ final class DownloadManager: NSObject, ObservableObject {
                 if autoInstalling?.canCancel == false {
                     throw ToolError.message(AppText.text("正在执行系统安装，完成前无法删除该任务。"))
                 }
-                try await Task.sleep(for: .milliseconds(50))
+                try await compatSleep(milliseconds: Double(50))
             }
             if let activeID = autoInstalling?.id, ids.contains(activeID) {
                 throw ToolError.message(AppText.text("自动安装尚在停止，请稍后重试删除。"))
@@ -960,7 +960,7 @@ final class DownloadManager: NSObject, ObservableObject {
         let deadline = Date().addingTimeInterval(15)
         while jobs.contains(where: { ids.contains($0.id) && $0.status == .pausing }) {
             guard Date() < deadline else { throw ToolError.message(AppText.text("暂停下载尚未完成，请稍后重试删除")) }
-            try await Task.sleep(for: .milliseconds(50))
+            try await compatSleep(milliseconds: Double(50))
         }
         try Task.checkCancellation()
         guard removingIDs.isEmpty else { throw ToolError.message(AppText.text("正在删除任务，请稍后重试")) }

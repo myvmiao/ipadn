@@ -165,7 +165,7 @@ final class AppIconService: ObservableObject {
            let restated = [Self.rememberedAlternate, "AppIconLight"].compactMap({ $0 }).first(where: { Self.bundledAlternateIsAvailable($0) }),
            Self.rememberedAlternate != nil || (reapplyPrimary && choice == current) {
             _ = await request(Self.systemSelection(for: restated))
-            try? await Task.sleep(for: .milliseconds(800))
+            try? await compatSleep(milliseconds: Double(800))
         }
 
         var lastError: Error?
@@ -184,7 +184,7 @@ final class AppIconService: ObservableObject {
             }
             lastError = result
             guard let error = result, Self.isTransientIconError(error), attempt < delays.count else { break }
-            try await Task.sleep(for: .milliseconds(delays[attempt]))
+            try await compatSleep(milliseconds: Double(delays[attempt]))
             if Self.systemSelection(for: UIApplication.shared.alternateIconName) == choice {
                 confirm(choice); return
             }
@@ -225,7 +225,7 @@ final class AppIconService: ObservableObject {
         reconciliation?.cancel()
         reconciliation = Task { [weak self] in
             for _ in 0..<100 {
-                try? await Task.sleep(for: .milliseconds(200))
+                try? await compatSleep(milliseconds: Double(200))
                 guard !Task.isCancelled else { return }
                 guard let self, self.awaitingSystem != nil else { return }
                 self.refresh()

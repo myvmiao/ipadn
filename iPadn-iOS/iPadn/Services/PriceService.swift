@@ -164,7 +164,7 @@ enum InAppPriceService {
         var outcome = await page(appID: appID, country: country)
         if case .failure(let reason) = outcome, !reason.isRedirect {
             // One retry: a busy storefront page often answers the second time.
-            try? await Task.sleep(for: .seconds(1))
+            try? await compatSleep(seconds: Double(1))
             outcome = await page(appID: appID, country: country)
         }
         let redirected: Bool
@@ -264,7 +264,7 @@ enum InAppPriceService {
         // Storefronts that list names in the language first, then the other
         // storefronts that were read.
         var candidates: [String] = []
-        for code in nameRegions(language: language) + [Locale.current.region?.identifier.uppercased()].compactMap({ $0 }) + english.keys.sorted()
+        for code in nameRegions(language: language) + [Locale.current.regionCode?.uppercased()].compactMap({ $0 }) + english.keys.sorted()
         where !candidates.contains(code) && english[code]?.isEmpty == false {
             candidates.append(code)
         }

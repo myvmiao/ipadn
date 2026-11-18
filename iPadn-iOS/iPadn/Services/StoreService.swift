@@ -605,7 +605,7 @@ enum StoreService {
         ]
         // Apple's name is already right for English. Otherwise the Chinese name
         // is the catalog key, translated into the interface language there.
-        guard AppText.locale.language.languageCode?.identifier != "en", let key = names[name] else { return name }
+        guard AppText.locale.compatLanguageCode != "en", let key = names[name] else { return name }
         return AppText.text(String.LocalizationValue(key))
     }
 
