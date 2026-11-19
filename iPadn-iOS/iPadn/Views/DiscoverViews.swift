@@ -41,6 +41,10 @@ struct ChartView: View {
         return list
     }
 
+        private func regionTitle(_ code: String) -> String {
+        StoreRegions.flag(code) + " " + StoreRegions.name(code)
+    }
+
     var body: some View {
         List {
             Section {
@@ -92,8 +96,8 @@ struct ChartView: View {
                 Menu {
                     ForEach(regions, id: \.self) { code in
                         Button { region = code == store.settings.store.country.uppercased() ? nil : code } label: {
-                            if code == country.uppercased() { Label(StoreRegions.flag(code) + " " + StoreRegions.name(code), systemImage: "checkmark") }
-                            else { Text(StoreRegions.flag(code) + " " + StoreRegions.name(code)) }
+                            if code == country.uppercased() { Label(regionTitle(code), systemImage: "checkmark") }
+                            else { Text(regionTitle(code)) }
                         }
                     }
                 } label: {
