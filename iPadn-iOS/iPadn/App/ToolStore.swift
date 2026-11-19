@@ -2429,22 +2429,43 @@ final class ToolStore: ObservableObject {
         infoMessage = AppText.text("已复制到剪贴板")
     }
     func diagnosticsText() -> String {
-        [
-            "iPadn " + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""), "Platform: \(settings.store.platform.title)", "Region: \(settings.store.country)",
-            "Jobs: \(downloads.jobs.count)", "Concurrent limit: \(settings.maxConcurrentDownloads)",
-            "Version sources: \(settings.versionSources.filter(\.enabled).count)",
-            "Task states: " + downloads.jobs.map { "\($0.id.uuidString.prefix(8)): \($0.status.rawValue)" }.joined(separator: ", "),
-            "Installation: " + (settings.nativeInstallation ? "native" : settings.automaticInstallation ? "one-tap" : settings.localInstallation ? "local certificate" : "proxy"),
-            "Native installer: " + (NativeInstaller.isAvailable ? "linked" : "not linked") + ", pairing file: " + (NativeInstaller.hasPairingFile ? "yes" : "no"),
-            "Runs inside LiveContainer: " + (InstallLog.insideLiveContainer ? "yes" : "no"),
-            "Proxy or VPN on: " + (LocalHostRecord.proxyOrVPNActive ? "yes" : "no"),
-            "iOS " + UIDevice.current.systemVersion,
-            "Last login (metadata only):", apple.loginDiagnostic,
-            "Last update check (metadata only):", appUpdateDiagnostic,
-            "Recent request failures (metadata only):", RequestFailureLog.text,
-            "Installation server log:", InstallLog.shared.text.isEmpty ? "(empty)" : InstallLog.shared.text,
-            "Contains no credentials, cookies, Apple account names or download URLs."
-        ].joined(separator: "\n")
+        var lines: [String] = []
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+        lines.append("iPadn " + version)
+        lines.append("Platform: \(settings.store.platform.title)")
+        lines.append("Region: \(settings.store.country)")
+        lines.append("Jobs: \(downloads.jobs.count)")
+        lines.append("Concurrent limit: \(settings.maxConcurrentDownloads)")
+        lines.append("Version sources: \(settings.versionSources.filter(\.enabled).count)")
+        let taskStates = downloads.jobs.map { "\($0.id.uuidString.prefix(8)): \($0.status.rawValue)" }.joined(separator: ", ")
+        lines.append("Task states: " + taskStates)
+        let installation: String
+        if settings.nativeInstallation {
+            installation = "native"
+        } else if settings.automaticInstallation {
+            installation = "one-tap"
+        } else if settings.localInstallation {
+            installation = "local certificate"
+        } else {
+            installation = "proxy"
+        }
+        lines.append("Installation: " + installation)
+        let nativeInstaller = NativeInstaller.isAvailable ? "linked" : "not linked"
+        let pairingFile = NativeInstaller.hasPairingFile ? "yes" : "no"
+        lines.append("Native installer: " + nativeInstaller + ", pairing file: " + pairingFile)
+        lines.append("Runs inside LiveContainer: " + (InstallLog.insideLiveContainer ? "yes" : "no"))
+        lines.append("Proxy or VPN on: " + (LocalHostRecord.proxyOrVPNActive ? "yes" : "no"))
+        lines.append("iOS " + UIDevice.current.systemVersion)
+        lines.append("Last login (metadata only):")
+        lines.append(apple.loginDiagnostic)
+        lines.append("Last update check (metadata only):")
+        lines.append(appUpdateDiagnostic)
+        lines.append("Recent request failures (metadata only):")
+        lines.append(RequestFailureLog.text)
+        lines.append("Installation server log:")
+        lines.append(InstallLog.shared.text.isEmpty ? "(empty)" : InstallLog.shared.text)
+        lines.append("Contains no credentials, cookies, Apple account names or download URLs.")
+        return lines.joined(separator: "\n")
     }
 }
 
