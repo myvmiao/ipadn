@@ -286,7 +286,7 @@ enum InAppPriceService {
     /// the language's main storefront (JP for ja, even on a ja-CN device).
     static func nameRegions(language: String) -> [String] {
         let tag = language.lowercased()
-        let tagRegion = Locale(identifier: language).region?.identifier.uppercased()
+        let tagRegion = Locale(identifier: language).regionCode?.uppercased()
         let native: [String]
         switch tag {
         case _ where tag.hasPrefix("zh-hans"): native = ["CN"]
