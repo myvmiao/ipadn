@@ -63,7 +63,7 @@ enum AppReleaseFeed {
                   page.user == nil, page.password == nil, page.port == nil,
                   page.query == nil, page.fragment == nil else { return }
             let prefix = "/\(AppUpdateService.repository)/releases/tag/"
-            let path = page.path(percentEncoded: true)
+            let path = page.compatPercentEncodedPath
             guard path.hasPrefix(prefix) else { return }
             let tag = String(path.dropFirst(prefix.count))
             let version = tag.hasPrefix("v") ? String(tag.dropFirst()) : tag
