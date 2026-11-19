@@ -1485,6 +1485,7 @@ struct MenuChip: UIViewRepresentable {
         }]
     }
 
+        @available(iOS 16.0, *)
     func sizeThatFits(_ proposal: ProposedViewSize, uiView: TactileContainerView, context: Context) -> CGSize? {
         context.coordinator.host?.sizeThatFits(in: CGSize(width: proposal.width ?? .greatestFiniteMagnitude,
                                                           height: .greatestFiniteMagnitude))
