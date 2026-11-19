@@ -60,10 +60,10 @@ enum AppleAuthentication {
               url.scheme?.lowercased() == "https", let host = url.host?.lowercased(),
               url.user == nil, url.password == nil, url.fragment == nil,
               url.port == nil || url.port == 443 else { return false }
-        let urlPath = url.path(percentEncoded: true)
+        let urlPath = url.compatPercentEncodedPath
         guard hasSafePath(urlPath) else { return false }
         if host == "auth.itunes.apple.com" { return nativePaths.contains(urlPath) }
-        let path = page.compatPercentEncodedPath
+        if host == "downloaddispatch.itunes.apple.com" { return downloadDispatchPaths.contains(urlPath) }
         if isBuyHost(host) { return buyProofPaths.contains(urlPath) }
         return false
     }
