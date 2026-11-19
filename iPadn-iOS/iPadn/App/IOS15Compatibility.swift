@@ -1,4 +1,13 @@
 import SwiftUI
+extension URL {
+    /// `path(percentEncoded:)` for iOS 16+ with an equivalent iOS 15 fallback.
+    var compatPercentEncodedPath: String {
+        if #available(iOS 16.0, *) {
+            return path(percentEncoded: true)
+        }
+        return URLComponents(url: self, resolvingAgainstBaseURL: false)?.percentEncodedPath ?? path
+    }
+}
 import UIKit
 
 // MARK: - iOS 15 compatibility layer
@@ -55,7 +64,7 @@ struct CompatPathStack<Route: Hashable, Content: View>: View {
             }
         } else {
             NavigationView {
-                LegacyStackLevel(path: $path, depth: 0, destination: destination) { content }
+                LegacyStackLevel(path: $path, depth: 0, destination: destination) { AnyView(content) }
             }
             .navigationViewStyle(.stack)
             .environment(\.compatRouteResolver, { any in
@@ -69,17 +78,17 @@ struct CompatPathStack<Route: Hashable, Content: View>: View {
 /// One level of the iOS 15 path emulation. Each level owns the link to the
 /// next one, so popping (including the interactive back gesture) truncates
 /// the bound path in the same way `NavigationStack` does.
-private struct LegacyStackLevel<Route: Hashable, Content: View>: View {
+private struct LegacyStackLevel<Route: Hashable>: View {
     @Binding var path: [Route]
     let depth: Int
     let destination: (Route) -> AnyView
-    let content: () -> Content
+    let content: () -> AnyView
 
     init(
         path: Binding<[Route]>,
         depth: Int,
         destination: @escaping (Route) -> AnyView,
-        @ViewBuilder content: @escaping () -> Content
+        content: @escaping () -> AnyView
     ) {
         self._path = path
         self.depth = depth
