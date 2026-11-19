@@ -241,8 +241,12 @@ struct LoginView: View {
         .background(Color(.systemGroupedBackground).ignoresSafeArea())
         .navigationTitle("").navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(busy)
-        .toolbar {
-            if busy { ToolbarItem(placement: .compatibleTopBarTrailing) { Button("取消") { loginTask?.cancel() } } }
+                .toolbar {
+            ToolbarItem(placement: .compatibleTopBarTrailing) {
+                if busy {
+                    Button("取消") { loginTask?.cancel() }
+                }
+            }
         }
         .onDisappear { loginTask?.cancel() }
     }
