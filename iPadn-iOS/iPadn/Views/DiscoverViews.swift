@@ -106,8 +106,8 @@ struct ChartView: View {
                 .accessibilityLabel(AppText.text("榜单地区：\(StoreRegions.name(country.uppercased()))"))
                 .accessibilityIdentifier("chart.region")
             }
-            if platform != .macOS {
-                ToolbarItem(placement: .compatibleTopBarTrailing) {
+            ToolbarItem(placement: .compatibleTopBarTrailing) {
+                if platform != .macOS {
                     Menu {
                         Picker("分类", selection: $genre) {
                             ForEach(ChartGenre.allCases) { Text(verbatim: $0.title).tag($0) }
