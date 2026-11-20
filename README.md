@@ -9,7 +9,7 @@
 
 [![最新版本](https://img.shields.io/github/v/release/mengangs/ipadn?label=%E6%9C%80%E6%96%B0%E7%89%88%E6%9C%AC&color=111111)](https://github.com/mengangs/ipadn/releases/latest)
 [![下载量](https://img.shields.io/github/downloads/mengangs/ipadn/total?label=%E4%B8%8B%E8%BD%BD%E9%87%8F&color=111111)](https://github.com/mengangs/ipadn/releases)
-![系统要求](https://img.shields.io/badge/iOS%20%2F%20iPadOS-16%2B-111111)
+![系统要求](https://img.shields.io/badge/iOS%20%2F%20iPadOS-15%2B-111111)
 [![许可证](https://img.shields.io/github/license/mengangs/ipadn?label=%E8%AE%B8%E5%8F%AF%E8%AF%81&color=111111)](LICENSE)
 
 **简体中文** · [English](README_EN.md)
@@ -34,7 +34,7 @@
 
 ---
 
-## 2.2.1 更新(感谢原作者，修改后，现在已支持iso15)
+## 2.2.1 更新
 
 - **修复专业模式白屏与深层子路由**：根标签绑定语义化 `TabID` 并将「账号」「应用包」升级为异构 `NavigationPath`，彻底解决开启/切换专业模式白屏、设置页失联及二级子页面（本机应用详情、版本来源编辑、安装包信息与内容浏览）跳转问题。
 - **修复搜索重复与 Wi‑Fi 传输断流**：按 `trackId` 与 `bundleID` 双重去重搜索结果并防止旧缓存污染实时上架状态；修复「Wi‑Fi 传输」下载耗时超过 30 秒的大体积安装包被误断开连接的问题。
