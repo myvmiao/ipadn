@@ -782,26 +782,41 @@ actor VersionService {
         let revision = cacheRevision
         // Complete every enabled query. Taking the first provider to respond
         // makes the version list depend on network timing and hides unique IDs.
-        let (sourceResults, allSucceeded) = await withTaskGroup(
-            of: (Int, Result<[AppVersion], Error>).self,
-            returning: ([[AppVersion]], Bool).self
-        ) { group in
-            for (index, source) in enabled.enumerated() {
-                group.addTask {
-                    do { return (index, .success(try await Self.fetch(appID, source: source))) }
-                    catch { return (index, .failure(error)) }
+        let merged: ([[AppVersion]], Bool)
+        if #available(iOS 16.0, *) {
+            merged = await withTaskGroup(
+                of: (Int, [AppVersion]?).self,
+                returning: ([[AppVersion]], Bool).self
+            ) { group in
+                for (index, source) in enabled.enumerated() {
+                    group.addTask {
+                        return (index, try? await Self.fetch(appID, source: source))
+                    }
                 }
+                var lists = Array(repeating: [AppVersion](), count: enabled.count)
+                var complete = true
+                for await (index, versions) in group {
+                    guard lists.indices.contains(index) else { complete = false; continue }
+                    if let versions { lists[index] = versions } else { complete = false }
+                }
+                return (lists, complete)
             }
-            var lists = Array(repeating: [AppVersion](), count: enabled.count)
+        } else {
+            // iOS 15 的 Swift 并发运行时在 task group 里传递 Result 会 trap。
+            // 来源只有几个，串行请求即可。
+            var lists: [[AppVersion]] = []
             var complete = true
-            for await (index, result) in group {
-                switch result {
-                case .success(let versions): lists[index] = versions
-                case .failure: complete = false
+            for source in enabled {
+                do {
+                    lists.append(try await Self.fetch(appID, source: source))
+                } catch {
+                    lists.append([])
+                    complete = false
                 }
             }
-            return (lists, complete)
+            merged = (lists, complete)
         }
+        let (sourceResults, allSucceeded) = merged
         try Task.checkCancellation()
         let versions = Self.mergeSourceResults(sourceResults)
         guard !versions.isEmpty else {
