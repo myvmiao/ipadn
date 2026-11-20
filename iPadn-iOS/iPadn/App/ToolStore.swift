@@ -479,6 +479,7 @@ final class ToolStore: ObservableObject {
             }
             return
         }
+        if input != lastSearchTerm { remember(input) }
         let id = UUID(); searchID = id
         let context = settings.store
         let limit = settings.searchLimit
@@ -538,7 +539,6 @@ final class ToolStore: ObservableObject {
                 appCatalog[catalogPlatformKey] = Array(AppSearchIndex.unique(listed + (appCatalog[catalogPlatformKey] ?? [])).prefix(1000))
                 let snapshot = appCatalog
                 cacheWrites.async { try? LocalResources.save(snapshot, filename: "app-catalog.json") }
-                remember(input)
                 if case .keyword(let term) = query {
                     let knownAfterSearch = owned.map(\.storeApp) + favorites + downloads.jobs.map(\.app) + (appCatalog[catalogPlatformKey] ?? [])
                     let refreshed = Self.findLocalMatches(term: term, platform: context.platform, known: knownAfterSearch, directory: nameCatalog)
