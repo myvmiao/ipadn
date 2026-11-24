@@ -1,0 +1,139 @@
+name: Apply iPadn 2.3.4 iOS 15 port and build
+
+# One-shot workflow:
+#   1. reassembles ipadn-ios15-234.tar.gz from the two uploaded parts,
+#      verifies its SHA-256, and extracts it,
+#   2. commits the adapted 2.3.4 source to the current branch (best effort),
+#   3. builds the unsigned iOS 15 lite IPA for TrollStore.
+#
+# The two parts stay under GitHub's 25 MB web-upload limit.
+# After the run succeeds you can delete this workflow and any leftover parts.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ios15-apply-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-26-intel
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Reassemble and apply adapted 2.3.4 source
+        run: |
+          test -f ipadn-ios15-234.tar.gz.part01 || { echo 'part01 not found in the repository root'; exit 1; }
+          test -f ipadn-ios15-234.tar.gz.part02 || { echo 'part02 not found in the repository root'; exit 1; }
+          cat ipadn-ios15-234.tar.gz.part01 ipadn-ios15-234.tar.gz.part02 > ipadn-ios15-234.tar.gz
+          echo "36f4e24d49282716738dd69d5a6408beb7f7a6000ba5266380d37855fad4bb9b  ipadn-ios15-234.tar.gz" | shasum -a 256 -c -
+          tar -xzf ipadn-ios15-234.tar.gz
+          rm -f iPadn-iOS/project.pbxproj ipadn-ios15-234.tar.gz ipadn-ios15-234.tar.gz.part01 ipadn-ios15-234.tar.gz.part02
+
+      - name: Commit adapted source (best effort)
+        continue-on-error: true
+        run: |
+          git config user.name "iPadn iOS15 Port"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "Adapt iPadn 2.3.4 for iOS 15 [skip ci]"
+          git push
+
+      - name: Select Xcode and report SDK
+        working-directory: iPadn-iOS
+        run: |
+          if [ -d /Applications/Xcode_26.6.app ]; then
+            sudo xcode-select -s /Applications/Xcode_26.6.app/Contents/Developer
+          elif [ -d /Applications/Xcode_27.2.app ]; then
+            sudo xcode-select -s /Applications/Xcode_27.2.app/Contents/Developer
+          elif [ -d /Applications/Xcode_27.1.app ]; then
+            sudo xcode-select -s /Applications/Xcode_27.1.app/Contents/Developer
+          elif [ -d /Applications/Xcode_26.0.1.app ]; then
+            sudo xcode-select -s /Applications/Xcode_26.0.1.app/Contents/Developer
+          fi
+          xcodebuild -version
+          xcodebuild -showsdks
+          mkdir -p build
+
+      - name: Verify project and repository-local runtime
+        working-directory: iPadn-iOS
+        run: |
+          python3 scripts/assemble_runtime.py
+          python3 scripts/verify_project.py
+          python3 -I scripts/compile_reveal_animations.py --check
+          node scripts/runtime_smoke_test.cjs
+
+      - name: Build unsigned device IPA
+        working-directory: iPadn-iOS
+        run: |
+          set -o pipefail
+          bash scripts/build_unsigned_ipa.sh 2>&1 | tee build/build.log
+          python3 scripts/make_lite_ipa.py build/iPadn-unsigned.ipa build/iPadn-ios15-lite-unsigned.ipa
+          python3 scripts/verify_ipa.py --lite build/iPadn-ios15-lite-unsigned.ipa
+          shasum -a 256 build/iPadn-ios15-lite-unsigned.ipa > build/iPadn-ios15-lite-unsigned.ipa.sha256
+          python3 - <<'PY'
+          import json, os, plistlib, subprocess, zipfile
+          from pathlib import Path
+          with zipfile.ZipFile('build/iPadn-ios15-lite-unsigned.ipa') as ipa:
+              info = plistlib.loads(ipa.read('Payload/iPadn.app/Info.plist'))
+          minimum = info.get('MinimumOSVersion', '')
+          if not minimum.startswith('15.'):
+              raise SystemExit(f'unexpected MinimumOSVersion: {minimum!r}')
+          Path('build/ios15-build-info.json').write_text(json.dumps({
+              'version': info['CFBundleShortVersionString'],
+              'build': info['CFBundleVersion'],
+              'minimum_ios': minimum,
+              'commit': os.environ.get('GITHUB_SHA'),
+              'run': os.environ.get('GITHUB_RUN_ID'),
+              'xcode': subprocess.check_output(['xcodebuild', '-version'], text=True).strip(),
+              'signed': False,
+              'note': 'Unsigned lite IPA; TrollStore installs it directly.'
+          }, indent=2) + '\n')
+          print('MinimumOSVersion:', minimum)
+          PY
+
+      - name: Check iOS 16+ framework linkage
+        working-directory: iPadn-iOS
+        run: |
+          python3 - <<'PY'
+          import subprocess, sys
+          binary = 'build/DerivedData/Build/Products/Release-iphoneos/iPadn.app/iPadn'
+          out = subprocess.check_output(['otool', '-l', binary], text=True)
+          current = None
+          strong = []
+          for line in out.splitlines():
+              line = line.strip()
+              if line == 'cmd LC_LOAD_DYLIB':
+                  current = 'strong'
+              elif line == 'cmd LC_LOAD_WEAK_DYLIB':
+                  current = 'weak'
+              elif line.startswith('name ') and any(name in line for name in ('ActivityKit', 'AppIntents', 'Charts')):
+                  print(line, '->', current)
+                  if current != 'weak':
+                      strong.append(line)
+          if strong:
+              print('These frameworks would crash the app on iOS 15 because they are strongly linked:', file=sys.stderr)
+              for line in strong:
+                  print('  ' + line, file=sys.stderr)
+              sys.exit(1)
+          print('ActivityKit / AppIntents / Charts are weak or absent: safe on iOS 15.')
+          PY
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: iPadn-2.3.4-ios15-trollstore-ipa
+          path: |
+            iPadn-iOS/build/iPadn-ios15-lite-unsigned.ipa
+            iPadn-iOS/build/iPadn-ios15-lite-unsigned.ipa.sha256
+            iPadn-iOS/build/ios15-build-info.json
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
