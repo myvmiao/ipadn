@@ -1,5 +1,8 @@
 import SwiftUI
 import UIKit
+#if canImport(TestFlightKit)
+import TestFlightKit
+#endif
 
 @MainActor
 enum AppContainer {
@@ -82,9 +85,20 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     }
     func application(_ application: UIApplication, handleEventsForBackgroundURLSession identifier: String,
                      completionHandler: @escaping () -> Void) {
-        Task { @MainActor in
-            guard identifier == DownloadManager.sessionID else { completionHandler(); return }
-            AppContainer.shared.downloads.backgroundCompletion = completionHandler
+        #if canImport(TestFlightKit)
+        if identifier == TFTransfer.backgroundSessionIdentifier {
+            TFTransfer.handleBackgroundEvents(completionHandler: completionHandler)
+            return
+        }
+        #endif
+        guard identifier == DownloadManager.sessionID else { completionHandler(); return }
+        MainActor.assumeIsolated {
+            let downloads = AppContainer.shared.downloads
+            let previous = downloads.backgroundCompletion
+            downloads.backgroundCompletion = {
+                previous?()
+                completionHandler()
+            }
         }
     }
 }
@@ -135,6 +149,7 @@ struct iPadnApp: App {
                 .compatibleOnChange(of: lockSettings) { _ in configureLock(launching: false) }
                 // @Published sends before the value changes: look once it has.
                 .onReceive(store.downloads.$pendingAutoInstalls) { _ in AutoInstall.presentSoon(store) }
+                .onReceive(store.downloads.$pendingExternalAutoInstalls) { _ in AutoInstall.presentSoon(store) }
                 .onReceive(store.downloads.$autoInstallNotice) { notice in if let notice { store.infoMessage = notice } }
                 .onReceive(AppLock.shared.$locked) { locked in
                     if !locked {
@@ -155,6 +170,9 @@ struct iPadnApp: App {
                 store.downloads.resumeAutoInstalls()
                 AutoInstall.presentNext(store)
                 DownloadActivity.shared.sync()
+                if !LocalResources.isPreview, store.settings.appUpdateCheck {
+                    Task { await store.checkAppUpdate() }
+                }
             }
             guard phase == .background, !LocalResources.isPreview else { return }
             TemporaryExportSweeper.sweepStaleFiles(maxAge: 900)

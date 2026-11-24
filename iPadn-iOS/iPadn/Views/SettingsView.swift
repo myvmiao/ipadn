@@ -291,8 +291,15 @@ struct SettingsView: View {
             if page == .maintenance {
             Section {
                 Button {
-                    exportingBackupSheet = true
                     UX.feedback()
+                    if store.settings.appLock && AppLock.method != .unavailable {
+                        Task {
+                            guard await AppLock.shared.authenticate(reason: AppText.text("导出备份")) else { return }
+                            exportingBackupSheet = true
+                        }
+                    } else {
+                        exportingBackupSheet = true
+                    }
                 } label: {
                     Label("导出备份", systemImage: "square.and.arrow.up")
                 }
@@ -310,11 +317,8 @@ struct SettingsView: View {
                 CompatNavigationLink(value: AccountRoute.storage) { Label("存储空间", systemImage: "internaldrive") }
                     .accessibilityIdentifier("settings.storage")
                 Button("清除历史版本缓存") { clearCache = true }
-                    .confirmationDialog("清除历史版本缓存？", isPresented: $clearCache, titleVisibility: .visible) {
-                        Button("清除缓存", role: .destructive) {
-                            Task { do { try await store.clearVersionCaches(); store.infoMessage = AppText.text("已清除缓存") } catch { store.errorMessage = error.localizedDescription } }
-                        }
-                        Button("取消", role: .cancel) {}
+                    .actionConfirmation(isPresented: $clearCache, title: "清除历史版本缓存？", confirmTitle: "清除缓存") {
+                        Task { do { try await store.clearVersionCaches(); store.infoMessage = AppText.text("已清除缓存") } catch { store.errorMessage = error.localizedDescription } }
                     }
                 Button("导出诊断信息") {
                     do { share = SharedFile(url: try store.exportDiagnostics()) } catch { store.errorMessage = error.localizedDescription }
@@ -356,7 +360,8 @@ struct SettingsView: View {
                     Task {
                         let reached = await store.checkAppUpdate(force: true)
                         if !reached { store.errorMessage = AppText.text("暂时无法检查更新，请稍后重试。") }
-                        else if store.appUpdate == nil { store.infoMessage = AppText.text("已是最新版本") }
+                        else if store.appUpdate != nil { store.accountNav.push(.appUpdate) }
+                        else { store.infoMessage = AppText.text("已是最新版本") }
                     }
                 } label: {
                     HStack {
@@ -368,13 +373,18 @@ struct SettingsView: View {
                 .disabled(store.appUpdateChecking)
                 Toggle("自动检查更新", isOn: $store.settings.appUpdateCheck)
                     .compatibleOnChange(of: store.settings.appUpdateCheck) { on in
-                        if on { UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in } }
+                        if on {
+                            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
+                            Task { await store.checkAppUpdate() }
+                        }
                     }
-                Link("项目与更新", destination: URL(string: "https://github.com/mengangs/ipadn")!)
+                Link("项目与更新", destination: SupportLinks.releases)
             }
             Section {
                 CompatNavigationLink(value: AccountRoute.support) { SupportRow() }
                     .accessibilityIdentifier("settings.support")
+                Link(destination: SupportLinks.telegram) { TelegramChannelRow() }
+                    .accessibilityIdentifier("settings.telegram")
             }
             }
         }

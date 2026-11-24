@@ -11,14 +11,15 @@ struct FairPlayFileReport: Sendable {
     /// True when the slice was encrypted before this run.
     let wasEncrypted: Bool
 
+    /// `codeWords` stays in the report as a diagnostic, but it no longer decides
+    /// the verdict: heavily obfuscated or data-only payloads decrypt correctly
+    /// with zero ARM64 landmarks (measured on device 2026-11-19: 14 files landed
+    /// at 0.53–6.19 bits/byte with `code 0->0`, while every accepted file sat at
+    /// or below 7.06). The gate is therefore "the ciphertext really collapsed".
     var ok: Bool {
         guard cryptid == 0 else { return false }
         guard wasEncrypted else { return true }
-        // Real ARM64 code is well below 8 bits/byte and contains RET/PACIBSP
-        // landmarks. A header-only "fix" keeps the ciphertext, so both checks
-        // fail together. Tiny extension stubs are mostly zero padding, which is
-        // why there is no entropy floor: the landmarks are the proof.
-        return entropy < 7.5 && codeWords > 0
+        return entropy < 7.5
     }
 }
 
@@ -33,8 +34,8 @@ struct FairPlayVerification: Sendable {
 
     var summary: String {
         let decrypted = files.filter { $0.wasEncrypted && $0.ok }.count
-        var text = "Mach-O \(machOCount) 个，本次解密 \(decrypted) 个，残留加密 \(encryptedRemaining) 个"
-        if !failures.isEmpty { text += "，校验失败 \(failures.count) 个" }
+        var text = AppText.text("Mach-O \(machOCount) 个，本次解密 \(decrypted) 个，残留加密 \(encryptedRemaining) 个")
+        if !failures.isEmpty { text += AppText.text("，校验失败 \(failures.count) 个") }
         return text
     }
 }
@@ -193,7 +194,7 @@ enum FairPlayVerifier {
     /// look like real code.
     static func verify(ipa url: URL, wasEncrypted: [String: Int]) throws -> FairPlayVerification {
         guard let archive = try? Archive(url: url, accessMode: .read, pathEncoding: nil) else {
-            throw ToolError.message("无法打开导出的安装包")
+            throw ToolError.message(AppText.text("无法打开导出的安装包"))
         }
         var files: [FairPlayFileReport] = []
         var remaining = 0

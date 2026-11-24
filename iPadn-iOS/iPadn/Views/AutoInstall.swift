@@ -16,11 +16,53 @@ enum AutoInstall {
     static func presentNext(_ store: ToolStore) {
         guard !LocalResources.isPreview, showing == nil, store.installingJob == nil,
               UIApplication.shared.applicationState == .active, !AppLock.shared.locked,
-              store.externalDownloadPrompt == nil, store.errorMessage == nil,
-              let id = store.downloads.pendingAutoInstalls.first else { return }
-        guard let job = store.downloads.jobs.first(where: { $0.id == id && $0.status == .completed }) else {
+              store.externalDownloadPrompt == nil, store.errorMessage == nil else { return }
+
+        let nextView: AnyView
+        if let id = store.downloads.pendingAutoInstalls.first {
+            guard let job = store.downloads.jobs.first(where: { $0.id == id && $0.status == .completed }) else {
+                store.downloads.pendingAutoInstalls.removeAll { $0 == id }
+                presentNext(store)
+                return
+            }
+            nextView = AnyView(
+                PackageInstallationView(job: job, startsAutomatically: true)
+                    .sheetNotice()
+                    .environmentObject(store)
+                    .environmentObject(store.apple)
+                    .environmentObject(store.downloads)
+                    .environmentObject(store.signer)
+                    .tint(UX.tint)
+                    .toggleStyle(TintedSwitchToggleStyle())
+                    .preferredColorScheme(store.settings.appearance == "system" ? nil : store.settings.appearance == "dark" ? .dark : .light)
+            )
             store.downloads.pendingAutoInstalls.removeAll { $0 == id }
-            presentNext(store)
+        } else if let target = store.downloads.pendingExternalAutoInstalls.first {
+            guard FileManager.default.fileExists(atPath: target.fileURL.path) else {
+                store.downloads.pendingExternalAutoInstalls.removeAll { $0.id == target.id }
+                presentNext(store)
+                return
+            }
+            nextView = AnyView(
+                PackageInstallationView(
+                    job: target.job,
+                    startsAutomatically: true,
+                    packageFileURL: target.fileURL,
+                    packageIconURL: target.iconURL,
+                    isTestFlight: target.isTestFlight,
+                    onInstalled: target.onInstalled
+                )
+                    .sheetNotice()
+                    .environmentObject(store)
+                    .environmentObject(store.apple)
+                    .environmentObject(store.downloads)
+                    .environmentObject(store.signer)
+                    .tint(UX.tint)
+                    .toggleStyle(TintedSwitchToggleStyle())
+                    .preferredColorScheme(store.settings.appearance == "system" ? nil : store.settings.appearance == "dark" ? .dark : .light)
+            )
+            store.downloads.pendingExternalAutoInstalls.removeAll { $0.id == target.id }
+        } else {
             return
         }
         guard let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
@@ -29,24 +71,14 @@ enum AutoInstall {
                 ?? scene.windows.first(where: { $0.windowLevel == .normal && !$0.isHidden && $0.rootViewController != nil }),
               var top = window.rootViewController else { return }
         while let next = top.presentedViewController, !next.isBeingDismissed { top = next }
-        guard !top.isBeingDismissed else { return }
-        if top is UIAlertController || String(describing: type(of: top)).contains("PackageInstallation") {
+        if top.isBeingDismissed || top.presentedViewController != nil || top is UIAlertController || String(describing: type(of: top)).contains("PackageInstallation") {
             Task { @MainActor in
-                try? await compatSleep(milliseconds: Double(600))
+                try? await compatSleep(milliseconds: 500)
                 presentNext(store)
             }
             return
         }
-        let sheet = AutoInstallHost(rootView: AnyView(
-            PackageInstallationView(job: job, startsAutomatically: true)
-                .sheetNotice()
-                .environmentObject(store)
-                .environmentObject(store.apple)
-                .environmentObject(store.downloads)
-                .environmentObject(store.signer)
-                .tint(UX.tint)
-                .toggleStyle(TintedSwitchToggleStyle())
-                .preferredColorScheme(store.settings.appearance == "system" ? nil : store.settings.appearance == "dark" ? .dark : .light)))
+        let sheet = AutoInstallHost(rootView: nextView)
         sheet.closed = {
             showing = nil
             Task { @MainActor in
@@ -54,7 +86,6 @@ enum AutoInstall {
                 presentNext(store)
             }
         }
-        store.downloads.pendingAutoInstalls.removeAll { $0 == id }
         showing = sheet
         top.present(sheet, animated: true)
     }

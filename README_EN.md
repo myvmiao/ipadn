@@ -7,16 +7,27 @@
 **Search, download and install the apps you own, on iPhone and iPad.**
 Works with iPhone, iPad, Apple TV and Mac apps, including older versions and apps removed from sale.
 
-[![Latest release](https://img.shields.io/github/v/release/mengangs/ipadn?label=latest&color=111111)](https://github.com/mengangs/ipadn/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/mengangs/ipadn/total?label=downloads&color=111111)](https://github.com/mengangs/ipadn/releases)
-![Requires](https://img.shields.io/badge/iOS%20%2F%20iPadOS-16%2B-111111)
-[![License](https://img.shields.io/github/license/mengangs/ipadn?label=license&color=111111)](LICENSE)
+✨ **New in v2.3.4: TestFlight Downloads sync, background resume & Live Island · Unified monochrome icon & fluid morphs · 2FA/0-app fixes, Packages Undo & iOS 17.4+ guards** · 📢 **Prefer [Official Telegram Channel](https://t.me/ipadn_official) for first releases & feedback**
+
+[![Latest release](https://img.shields.io/github/v/release/mengangs/ipadn?label=latest&logo=github&logoColor=white&labelColor=2E3136&color=3A6EA5)](https://github.com/mengangs/ipadn/releases/latest)
+[![Telegram Channel](https://img.shields.io/badge/Telegram-%40ipadn__official-2C82A9?logo=telegram&logoColor=white&labelColor=2E3136)](https://t.me/ipadn_official)
+[![Downloads](https://img.shields.io/github/downloads/mengangs/ipadn/total?label=downloads&logo=icloud&logoColor=white&labelColor=2E3136&color=2D8A68)](https://github.com/mengangs/ipadn/releases)
+![Requires](https://img.shields.io/badge/iOS%20%2F%20iPadOS-16%2B-525D73?logo=apple&logoColor=white&labelColor=2E3136)
+[![License](https://img.shields.io/github/license/mengangs/ipadn?label=license&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPjxwYXRoIGQ9Ik0xMiAzYTEgMSAwIDAgMC0xIDF2MUg1LjVhMSAxIDAgMSAwIDAgMmguMzhsLTIuNiA1LjJBMy41IDMuNSAwIDAgMCA2LjUgMTZhMy41IDMuNSAwIDAgMCAzLjIyLTMuOEw3LjEyIDdIMTF2MTJIN2ExIDEgMCAxIDAgMCAyaDEwYTEgMSAwIDEgMCAwLTJoLTRWN2gzLjg4bC0yLjYgNS4yQTMuNSAzLjUgMCAwIDAgMTcuNSAxNmEzLjUgMy41IDAgMCAwIDMuMjItMy44TDE4LjEyIDdoLjM4YTEgMSAwIDEgMCAwLTJIMTNWNGExIDEgMCAwIDAtMS0xeiIvPjwvc3ZnPg%3D%3D&labelColor=2E3136&color=525D73)](LICENSE)
+
+<p>
+  <a href="#support-ipadn"><img src="https://img.shields.io/badge/Support%20iPadn-Free%20%26%20Open%20Source%20%C2%B7%20Buy%20a%20Coffee-B0436E?style=for-the-badge&logo=githubsponsors&logoColor=white&labelColor=2E3136" alt="Support iPadn"></a>
+  <a href="https://afdian.com/a/mengangs"><img src="https://img.shields.io/badge/Afdian-Sponsor-6759A8?style=for-the-badge&logo=buymeacoffee&logoColor=white&labelColor=2E3136" alt="Afdian"></a>
+</p>
 
 [简体中文](README.md) · **English**
 
-[Download](https://github.com/mengangs/ipadn/releases/latest) · [Install a download](#installing-a-downloaded-app) · [FAQ](#frequently-asked-questions) · [Report a problem](https://github.com/mengangs/ipadn/issues) · [Support iPadn](#support-ipadn)
+[Download](https://github.com/mengangs/ipadn/releases/latest) · [Official Telegram](https://t.me/ipadn_official) · ❤️ [**Support iPadn**](#support-ipadn) · [TestFlight Guide](#testflight-experimental) · [Install a download](#installing-a-downloaded-app) · [FAQ](#frequently-asked-questions)
 
 </div>
+
+> [!IMPORTANT]
+> **Join Telegram & GitHub Issues Archive**: To focus limited maintainer bandwidth on core engineering and faster user support, **new builds and source archives are now released first in our [Official Telegram Channel (`@ipadn_official`)](https://t.me/ipadn_official)** (with GitHub synced slightly later). **GitHub Issues are now closed to new reports** while existing issues remain as a read-only searchable archive — please post questions and bug reports **under the matching version post** in Telegram.
 
 <p align="center">
   <img src="docs/images/en/01-search.jpg" width="24%" alt="Search">
@@ -34,54 +45,52 @@ Works with iPhone, iPad, Apple TV and Mac apps, including older versions and app
 
 ---
 
-## What’s new in 2.2.1
+## What’s new in 2.3.4
 
-- **Fix Pro mode white screen & deep navigation**: Binds root tabs to semantic `TabID` values and upgrades Account and Packages stacks to heterogeneous `NavigationPath`, resolving white screens and Settings lockouts when toggling Pro mode and keeping Installed Apps, Version Source Editor, Package Info, and Package Contents sub-routes reliable.
-- **Fix duplicate search results & 30s Wi‑Fi transfer cutoff**: Deduplicates search results by `trackId` and `bundleID` without letting stale cached flags override live listings, and scopes the 30-second Wi‑Fi transfer timeout strictly to HTTP header parsing so large IPA downloads never drop mid-stream.
-- **Streaming FairPlay decryption, storage cleanup & security hardening**: Uses 4 MB page-aligned streaming windows in `FairPlayCore` (`8 MB` peak heap), hardens 64-bit Mach-O / `///..` archive containment, requires user confirmation for external `ipadn://` download URLs, sweeps `tmp/Share` hard links, and updates all 11 interface languages.
-- Standard and lite packages remain available for iOS / iPadOS 16 and later. See the [release notes](RELEASE_NOTES.md).
+- **TestFlight Sync, Background Resume, Auto-Install & Live Island**: Syncs active TestFlight downloads into **Downloads** with tab badges, background transfer + `resumeData` pause/resume, automatic CDN URL refresh, Pause All / Resume All, unified **Auto-Install**, and live Dynamic Island / Lock Screen percentages (fixing background stalls), while removing session-only "Installed" badges.
+- **Unified Lists, Monochrome TF Icon & Fluid Morph Animations**: Merges TestFlight into unified **Downloads** and **Packages** lists with a cohesive monochrome icon across **Decrypted**, **Wi‑Fi Transfer**, and **Settings › Storage** (persisted on `DecryptRecord`); upgrades `AppStoreActionButton` and Downloads/TestFlight controls for fluid spring morphing across Get → Loading → Ring → Pause/Resume Pill → Checkmark → Install.
+- **Fixed Repeated 2FA Prompts, Multi-Phone 2FA & 0-App Stalls**: Silently restores local TestFlight sessions & cookie jars on launch/switch without unexpected GSA 2FA pushes, adds a multi-phone SMS 2FA picker, fixes 2FA sheet races and transient `503` retries, caches 0-app catalogs for instant switching, and caps `TFDoh` probes to 2s in parallel.
+- **Packages Undo, Centered Alerts, Pairing UX & iOS 17.4+ Guards**: Adds 5-second atomic swipe Undo across all five **Packages** row types, migrates all destructive confirmations to centered native `.alert`, cleans up redundant Account entries, puts **Cancel Pairing** in the top-left toolbar with fixed 6-digit PIN notifications/layout, expands App Store billing/terms error guidance (`3038 / 5111 / 2022 / 3002 / 5062 / 5304`), and adds iOS 17.4+ guards and peer-LAN Bonjour isolation for Native Install. See the [release notes](RELEASE_NOTES.md).
 
-## What’s new in 2.2.0
+## What’s new in 2.3.3
 
-- **On-device FairPlay IPA decryption (Pro mode › Packages)**: Integrates the zero-dependency C `FairPlayCore` module to decrypt and verify legally acquired IPAs locally (supporting nested `.appex` extensions, frameworks, and 64-bit FAT slices) with strictly redacted logs.
-- **Full encrypted backup & restore (AES-256-GCM)**: Export plaintext or password-encrypted backups (settings, version sources, followed apps, recent searches, Apple session credentials and StoreProof) under Account › Settings › Backup & Maintenance, with selective unlock preview before restoring.
-- **App Detail & appearance controls**: Independently toggle App Screenshots and Customer Reviews under Account › Settings › Appearance & Icon to hide those sections and stop extra requests, and group Show Version History Icons under Appearance & Icon as well.
-- Standard and lite packages remain available for iOS / iPadOS 16 and later, with all 11 interface languages and bundled third-party notices updated. See the [release notes](RELEASE_NOTES.md).
+- **Fixed Apple Download/Purchase Errors & Diagnostic Blind Spots**: Handles `1008` session expiration alongside `2034 / 2042`, auto-recovers `-128` (`CountryMismatch`) account storefronts (`resetAndRedirect?dsf=`), detects `buyProductFailure` App Store Terms prompts (`termsPage`), adds clear password-changed / account-disabled messages, logs redacted HTTP 200 Apple plist failures to `RequestFailureLog`, and includes strictly validated numeric codes on unmapped fallback alerts.
+- **Upgraded Downloads Multi-Select & Unified Undo**: Matches **Packages** in-place selection across regular and TestFlight items with a shared 5-second Undo stack restoring both tasks and files together.
+- **Quick SDK / Xcode Build Info & Swipe Mask Fix**: Displays compiled SDK & Xcode versions in Package & TestFlight details, and fixes the gray dimming mask when swiping rows in Pro mode **Packages** and **Decryption History**.
+- **Security, Performance & 11-Language Polish**: Hardens redaction, TestFlight cookie isolation, and `TFSINF` `cryptid` checks; removes main-thread disk I/O for smoother scrolling; completes 11-language/RTL localization and Light/Dark visual polish. See the [release notes](RELEASE_NOTES.md).
 
-## What’s new in 2.1.3
+## What’s new in 2.3.2
 
-- **Fix keyword-search crash & concurrency race**: Replace nested concurrent pre-search task-group probes with sequential post-search verification of candidate delisted apps and explicit task cancellation.
-- **Isolate notice animations & smoother account switching**: Move the top notice/undo overlay into its own view to avoid re-evaluating the tab hierarchy, and start rendering the switch notice before kicking off sync and search.
-- **Polish on-device pairing & Live Activity handoff**: Trigger a Step 1 Dynamic Island alert banner when opening Settings, refine pairing instructions across all 11 languages, and cancel superseded Live Activity waits promptly.
-- Standard and lite packages remain available for iOS / iPadOS 16 and later. See the [release notes](RELEASE_NOTES.md).
+- **Full Purchase History & Delisted App Recovery**: Adds Apple's `/commerce/account/purchases` history endpoint alongside DMAP so older and delisted apps (with multi-locale purchase dates) are no longer missing; runs initial full-history sync with **6 concurrent workers** and live year progress, persists state so subsequent refreshes only scan the current year incrementally in seconds, and adds a **Sync Full Purchase History** menu action.
+- **Fixed Purchased List Icons Staying Gray After Account Switch**: Removes the storefront-sync race that aborted `loadOwnedArtwork()` on account switch, scopes deduplication per storefront (`country|appId`), increases batch size to 50, and preserves cached icon URLs across merges.
+- **Fixed TestFlight Sign-In Error Classification & Stale Device Slots**: Automatically wipes and re-provisions stale cached `iphone` slots returning `rinfo=67437824` (with GSA fallback), and stops matching `"iphone"` as a multi-phone verification error.
+- **Fixed Dark Mode Update Badge Contrast**: Switches the Account › Settings update pill text from hardcoded white to `UX.onAccent` on `UX.tint`.
 
-## What’s new in 2.1.2
+## What’s new in 2.3.1
 
-- **Prioritize delisted apps in search**: Keyword search combines the alias directory with local purchased, favorite and download records for tiered matching, verifies candidate delisted status, and places confirmed matching delisted apps first (toggleable under Account › Settings › Downloads › Prioritize Delisted Apps in Search).
-- **Centered action morph & equalized rings**: Action pills, cloud buttons and monochrome progress rings align on one centered column, morph smoothly around their center, and share an equal track/progress stroke width.
-- **Swipe animations & 5-second Undo**: Revealed swipe icons play native Core Animation sequences (respecting Reduce Motion). Swipe-deleting downloads shows a 5-second Undo countdown (including consecutive deletions); search-history deletion removes the countdown.
-- **Vector tab bar, synced shimmer & in-place translation**: Adaptive vector tab animations with balanced Search/Account strokes and window-synchronized skeleton shimmer, plus opt-in Translate in place on iOS 18+ with Show original under Account › Settings › Appearance & icon › Translation.
-- **Live Activity pairing, native install & version matching**: Delivers background pairing Live Activity progress/codes (with notification fallback only when inactive), fixes dark-mode pairing badge contrast, runs blocking native install/lookup FFI on a 4 MiB stack thread with cancellation, prevents `external_identifier` values from replacing real version numbers, and adds a Show Version History Icons toggle in Download settings.
-- Standard and lite packages remain available for iOS / iPadOS 16 and later. See the [release notes](RELEASE_NOTES.md).
+- **Restored iOS / iPadOS 16 Compatibility (thanks [@tageniu](https://github.com/tageniu) for PR #108)**: Restores the **iOS 16.0** deployment target with weak-linked iOS 17+ frameworks (`Symbols`, `Translation`, `ActivityKit`), falls back to HMAC-SHA1 PKCS#12 MAC on iOS 16, registers `SigningCapability.swift` in `iPadn.xcodeproj`, and aligns `iPadnLiveActivity` availability checks across Xcode and `xtool`.
+- **Smooth Version History Scrolling & Instant Account Switching**: Extracts `VersionIconCache`, uses race-free chunked `URLSessionDataDelegate` range reads with prefix-filtered `RemoteZip` parsing off the main actor, flattens `AppDetailView` into a single `LazyVStack` to prevent fast-scroll stalls/blanking, isolates `AccountsView` & `NoticeCenter`, switches accounts cleanly in place on the Accounts tab, and replaces heavy material toast animations with a lightweight elevated capsule.
+- **Post-Failure Cross-Region Diagnosis & Account Switch (`2059` / `1010`)**: Only after an actual `2059`/`1010` failure (never pre-blocking working cross-region downloads), shows a concise region mismatch alert with **Switch & Retry** (when a matching signed-in account exists) or **Switch Account**.
+- **TestFlight / CI Reliability**: Expands `SAPSigner` cold-boot WebKit warm-up bounds.
 
-## What’s new in 2.1.1
+## What’s new in 2.3.0
 
-- **Fix an Installation settings crash on iOS 16**: encode the installation-help URL correctly and safely handle invalid App Store links.
-- **Improve date-range filter layout**: group start/end dates, query actions and progress in one panel, align controls and adapt to accessibility text sizes.
-- Standard and lite packages remain available for iOS / iPadOS 16 and later. See the [release notes](RELEASE_NOTES.md).
+> **v2.2.1 → v2.3.0 Milestone Jump**: Since the last GitHub release (**v2.2.1**), iPadn accumulated **20+ consecutive local feature & architecture iterations** before tagging **v2.3.0**—headlined by a brand-new **TestFlight hub (Experimental)**, an in-app Standard/Lite update picker, localized titles, and our official Telegram community hub.
 
-## 2.1.0 highlights
+- **🆕 TestFlight Hub, SINF Downloads & Unified Install (Experimental)**: Built a dedicated Store-styled **Account › TestFlight** page separating builds into **Testing**, **Incompatible**, and **Previously Tested**, with keyword filtering, localized app titles, and multi-account avatar switching. Supports live speed/ETA cards, injected SINF for zero-decrypt **Native Install** via `InstallCoordinator`, read-only projection into **Downloads** & Pro mode **Packages** (with `FairPlayCore` decryption resolution), and `TFNet` networking controls (Follow System / Force Direct / Force Proxy), automatic single direct bypass, DoH/fake-IP preflight diagnostics, and strictly redacted rotating logs.
+- **⬆️ In-App Update Variant Picker (`AppUpdateView`)**: Surface timely release alerts and pick **Standard** or **Lite** builds directly inside the update sheet with size and changelog preview.
+- **🌏 Localized Names & Polish**: Prefer localized app names across TestFlight, Store, Downloads, and Pro mode Packages, plus quick Bundle ID copy and responsive UI refinements.
+- **📢 Official Telegram Channel (All 11 Languages)**: Adds direct links to [https://t.me/ipadn_official](https://t.me/ipadn_official) in Account › Settings › Support iPadn and SupportView. iPadn stays free and open source, publishes new releases to Telegram first, and archives GitHub Issues as read-only.
+- ⚠️ **Experimental Notice & Disclaimer**: TestFlight is newly developed and subject to Apple server behavior, active invite eligibility, and network rules—treat it as experimental and test with a secondary account first. See the [TestFlight Experimental](#testflight-experimental) guide.
+- Standard and lite packages remain available for iOS / iPadOS 16 and later.
 
-- **Clearer version history**: each row shows its own package icon, IPA size and version details, making activity badges easy to compare without downloading the full package. Asset-catalog-only icons are not yet supported; unavailable icons use placeholders.
-- **Find versions by date**: select inclusive start/end dates, with progress, cancellation and explicit unknown-date counts. Histories load in batches, with on-demand icons and a bounded decoded-image cache. Package dates can differ from store release dates.
-- **More complete download controls**: swipe to delete/share, outside-tap dismissal, a five-second Undo countdown, completion transitions, and sequential automatic installation with the native method.
-- **Inspectable installed apps**: view local version and Bundle ID even without store details, distinguish missing regional listings from lookup failures, and retry store details independently.
-- Fixes clipped swipe edges, slow closing animations after dropped frames, duplicate installation queuing and wrapped search-chip corners. Both standard and lite packages remain available. See the [release notes](RELEASE_NOTES.md).
+> For earlier releases, see [GitHub Releases](https://github.com/mengangs/ipadn/releases) and [release notes](RELEASE_NOTES.md).
 
 ## What it does
 
 | | |
 | --- | --- |
+| ✈️ **TestFlight (🆕 Experimental)** | Browse and download your account's TestFlight apps under Account › TestFlight: grouped by Testing / Incompatible / Previously Tested with search, multi-account switching, SINF-injected zero-decrypt Native Install, projection into Downloads & Pro Packages, plus `TFNet` proxy bypass and redacted diagnostics. |
 | 🔍 **Search & discover** | Search by app name, App ID or App Store link, and switch storefront region and platform (iPhone / iPad / Apple TV / Mac). Recent searches appear as chips. Discover, App Screenshots and Customer Reviews can each be turned off in Settings; when enabled, Discover shows Top Free, Top Paid and Top Grossing for any region by category alongside other apps by the same developer. |
 | 🌐 **Translation** | Descriptions and release notes use the system translation sheet by default. On iOS 18+, opt into in-place translation under Settings › Appearance & icon › Translation and prepare languages there. The target follows the app language, with Show original. |
 | 🕘 **Older versions** | See each version's number, date, IPA package size, version-specific icon and release notes and download older versions, or enter a version ID directly. Long-press a row to copy its version number or ID; accessibility text sizes use a vertical layout. Unavailable sizes show “—”, never the latest version's size. Primary icon PNGs are read on demand from each version's IPA and cached separately (or disable loading in Appearance & icon settings to save bandwidth). Unavailable icons use a placeholder, never current store artwork; asset-catalog-only icons are not yet supported. Downloaded apps can “Keep this version” to stop update reminders. |
@@ -106,7 +115,7 @@ Works with iPhone, iPad, Apple TV and Mac apps, including older versions and app
 
 The interface follows the App Store's design. Appearance follows the system and the icon is dark by default (both can be changed in Settings), with Dynamic Type, the iPad sidebar and alternate app icons.
 
-**Languages:** English, Simplified Chinese, Traditional Chinese, Japanese, Korean, Russian, Spanish, French, German, Portuguese (Brazil) and Arabic, with a right-to-left layout for Arabic. iPadn follows the system language; to choose a different one for iPadn only, use Settings › iPadn › Language. English was refined by a community contributor and the other languages are machine-assisted translations; corrections are welcome in [Issues](https://github.com/mengangs/ipadn/issues) or a pull request.
+**Languages:** English, Simplified Chinese, Traditional Chinese, Japanese, Korean, Russian, Spanish, French, German, Portuguese (Brazil) and Arabic, with a right-to-left layout for Arabic. iPadn follows the system language; to choose a different one for iPadn only, use Settings › iPadn › Language. English was refined by a community contributor and the other languages are machine-assisted translations; corrections are welcome in our [Official Telegram Channel](https://t.me/ipadn_official) or a pull request.
 
 ## Getting started
 
@@ -193,6 +202,18 @@ You can also tap the share button to hand the package to another installation to
 3. When the download finishes, tap the share button and send it to your Mac with AirDrop or Files to install it.
 
 The first Mac download fetches about 47 MB of extra components, which are reused afterwards. DMG / PKG / ZIP installers the developer offers on their website can also be downloaded from the app page.
+
+## TestFlight Experimental
+
+> [!WARNING]
+> **Experimental Status, Stability & Disclaimer**: The TestFlight module debuts in **v2.3.0** as an **experimental feature**. Because it depends on Apple server behavior, active per-account beta invitations, local proxy/DNS rules, and on-device pairing state, you may run into session expiration, re-authentication prompts, 401/risk checks, or interrupted downloads. **Testing with a secondary Apple Account first is recommended, and never share pairing files, tokens, or unencrypted backups.** Released under [GPL-2.0-or-later](LICENSE) and unaffiliated with Apple Inc. for authorized testing and personal research only—the author assumes no liability for account restrictions or data loss.
+
+**Quick start:**
+
+1. Open **Account › TestFlight** and sign in or switch accounts via the top-right avatar (TestFlight sessions are stored per DSID and intentionally isolated from iOS App Store sessions, so TF may ask for its own initial sign-in).
+2. Apps are grouped into three buckets: **Testing** (active iOS builds eligible for this device), **Incompatible** (macOS / tvOS / visionOS / iPad-only builds), and **Previously Tested** (expired or retired builds shown read-only).
+3. Tap download for live speed/ETA progress. Downloaded builds include injected SINF bound to your `ApplicationDSID` and run directly via **Native Install** (with device pairing + LocalDevVPN) **without needing decryption or re-signing**, or can be exported/shared and inspected/decrypted under Pro mode › **Packages** when App Group access is available.
+4. If catalog loading stalls or fails with network/401 errors, open **Network & Diagnostics** inside TestFlight to switch between **Follow System / Force Direct / Force Proxy**, check DNS/fake-IP preflight results, and copy strictly redacted logs when reporting under the release post in [Official Telegram](https://t.me/ipadn_official).
 
 ## Pro mode
 
@@ -301,9 +322,23 @@ Check the connection, then pause and resume. A failed download can be retried di
 </details>
 
 <details>
-<summary><b>Can I download TestFlight builds?</b></summary>
+<summary><b>How do I download and install TestFlight builds? Do they need decryption or re-signing?</b></summary>
 
-Not currently. Existing IPA files can be imported with the “+” button on the Downloads page.
+Open **Account › TestFlight** to view beta apps grouped into Testing, Incompatible, and Previously Tested. After downloading:
+- **Native Install**: TestFlight packages include injected SINF tied to the downloading account. With on-device pairing + LocalDevVPN, Native Install runs the beta build directly **without decryption or re-signing**.
+- **Sideload / Save**: You can also export/share packages or decrypt eligible builds locally under Pro mode › Packages (requires matching App Group entitlements from your signing tool; otherwise iPadn reports why Native Install is unavailable and offers Save/Share).
+</details>
+
+<details>
+<summary><b>Why can't I download builds under Previously Tested or macOS-only items?</b></summary>
+
+Due to Apple TestFlight server rules, only active **iOS / iPadOS** builds that your account currently holds an active beta invite for can be downloaded. Expired/retired items under Previously Tested and macOS/tvOS/visionOS-only builds are shown read-only; Apple does not serve historical expired TestFlight builds.
+</details>
+
+<details>
+<summary><b>Why does TestFlight ask to sign in again, or hit 401 / loading errors?</b></summary>
+
+TestFlight uses an isolated Mac/akd session store scoped per DSID and separated from iOS App Store decryption sessions, so TF may request its own initial sign-in (testing with a secondary account first is recommended). If loading stalls or throws 401/network errors, open **Network & Diagnostics** inside TestFlight to switch between Follow System / Force Direct / Force Proxy, inspect DoH/fake-IP preflight status, and copy redacted diagnostics to our [Official Telegram Channel](https://t.me/ipadn_official).
 </details>
 
 <details>
@@ -324,26 +359,27 @@ No. Removing an account only clears that account's sign-in details and purchase 
 
 <sub>❤️ ❤️ ❤️</sub>
 
-iPadn will always be **free, open source and ad-free**.<br>
+iPadn is **free, open source and ad-free**.<br>
 If it saves you time or you simply enjoy it, you're welcome to buy the author a coffee ☕<br>
 Your support keeps the updates coming.
 
-<a href="https://afdian.com/a/mengangs"><img src="https://img.shields.io/badge/Afdian-Buy%20me%20a%20coffee-946ce6?style=for-the-badge&logo=buymeacoffee&logoColor=white" alt="Afdian"></a>
-<img src="https://img.shields.io/badge/USDT-BEP20-26a17b?style=for-the-badge&logo=tether&logoColor=white" alt="USDT BEP20">
+<a href="https://afdian.com/a/mengangs"><img src="https://img.shields.io/badge/Afdian-Buy%20me%20a%20coffee-6759A8?style=for-the-badge&logo=buymeacoffee&logoColor=white&labelColor=2E3136" alt="Afdian"></a>
+<img src="https://img.shields.io/badge/USDT-BEP20-2D8A68?style=for-the-badge&logo=tether&logoColor=white&labelColor=2E3136" alt="USDT BEP20">
 
 | Afdian (Alipay, WeChat Pay) | USDT (BNB Smart Chain / BEP20) |
 | :---: | :---: |
 | [**afdian.com/a/mengangs**](https://afdian.com/a/mengangs)<br><sub>Monthly or one-time</sub> | <img src="docs/images/usdt-bep20.png" width="180" alt="USDT QR code"><br><code>0x5f0cff7587b9fc305f9fa626135789bd5100818e</code> |
 
-<sub>Before sending USDT, check that the network is BEP20 and the address matches exactly; funds sent on another network or in another token may be lost.<br>You can also scan or copy the address in iPadn under Account › Settings › Support iPadn.<br>Starring the repo, reporting problems and improving translations help just as much.</sub>
+<sub>Before sending USDT, check that the network is BEP20 and the address matches exactly; funds sent on another network or in another token may be lost.<br>You can also scan or copy the address in iPadn under Account › Settings › Support iPadn.<br>Starring the repo, joining our official Telegram channel and improving translations help just as much.</sub>
 
 </div>
 
-## Contributing
+## Official Channel & Feedback
 
-- **Translations:** every interface string lives in [`Localizable.xcstrings`](iPadn-iOS/iPadn/Resources/Localizable.xcstrings); open it in Xcode to edit entries one by one. Pull requests that improve a language or add a new one are welcome.
-- **Bug reports:** describe your device, system version and steps in [Issues](https://github.com/mengangs/ipadn/issues). If you can, attach the file from Account › Settings › Export diagnostics; it contains no account names or credentials.
-- **Building:** see [BUILDING.md](iPadn-iOS/BUILDING.md).
+- **Official Telegram Channel**: 👉 [**https://t.me/ipadn_official**](https://t.me/ipadn_official)
+- **Open-Source & Release Cadence**: iPadn remains **free and open source**, and GitHub continues to publish source code and releases. New builds and source archives are posted first in our official Telegram channel, with GitHub updates following slightly behind.
+- **Why GitHub Issues Are Archived (Read-Only)**: Because maintainer time is limited and troubleshooting network/pairing/account behavior works much faster in one thread per release, **GitHub Issues are closed to new submissions while existing historical issues (#1–#106) stay preserved as a read-only archive**. Please post questions, TestFlight feedback, and bug reports **under the matching version post** in Telegram, including your device, OS version, steps, and optionally the redacted diagnostic file from Account › Settings › Backup & Maintenance › Export diagnostics.
+- **Translations & Building**: Every interface string lives in [`Localizable.xcstrings`](iPadn-iOS/iPadn/Resources/Localizable.xcstrings); pull requests improving translations are welcome. For building from source, see [BUILDING.md](iPadn-iOS/BUILDING.md).
 
 ## Acknowledgements
 
@@ -360,4 +396,4 @@ Your support keeps the updates coming.
 
 iPadn is released under [GPL-2.0-or-later](LICENSE): you may use, modify and redistribute it, and modified versions must be released under the same license.
 
-<sub>iPadn is not affiliated with Apple Inc. Only download apps you are legally licensed to use.</sub>
+<sub>iPadn is not affiliated with Apple Inc. Only download apps and authorized beta builds you are legally licensed to access; use experimental TestFlight features at your own risk.</sub>

@@ -24,8 +24,8 @@ final class VisualTests: XCTestCase {
         store.tab = 1
         try await capture("03-downloads-light", view: RootView(), store: store)
         try await capture("04-downloads-large-text", view: RootView(), store: store, textSize: .accessibility2)
-        try await capture("05-login", view: CompatStack { LoginView() }, store: store)
-        try await capture("06-app-detail", view: CompatStack { AppDetailView(app: a) }, store: store)
+        try await capture("05-login", view: NavigationStack { LoginView() }, store: store)
+        try await capture("06-app-detail", view: NavigationStack { AppDetailView(app: a) }, store: store)
         store.prepareAccountPreview(); store.tab = 3
         try await capture("08-accounts", view: RootView(), store: store)
         store.tab = 2

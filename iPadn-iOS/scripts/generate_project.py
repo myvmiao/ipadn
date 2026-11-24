@@ -42,11 +42,17 @@ test_id = uid("TestTarget")
 app_product = add("AppProduct", "PBXFileReference", explicitFileType="wrapper.application", includeInIndex="0", path="iPadn.app", sourceTree="BUILT_PRODUCTS_DIR")
 test_product = add("TestProduct", "PBXFileReference", explicitFileType="wrapper.cfbundle", includeInIndex="0", path="iPadnTests.xctest", sourceTree="BUILT_PRODUCTS_DIR")
 app_files, sources = [], []
-for path in sorted((ROOT / "iPadn").rglob("*.swift")):
+for path in sorted((ROOT / "iPadn").rglob("*.swift"), key=lambda path: tuple(part.casefold() for part in path.parts)):
     relative = path.relative_to(ROOT / "iPadn").as_posix()
     reference = add("File/" + relative, "PBXFileReference", lastKnownFileType="sourcecode.swift", path=relative, sourceTree="<group>")
     app_files.append(reference)
     sources.append(add("Build/" + relative, "PBXBuildFile", fileRef=reference))
+# Xcode builds use the same entitlement resolver as the xtool package.
+signing_capability = "../TestFlightKit/SigningCapability.swift"
+reference = add("File/" + signing_capability, "PBXFileReference", lastKnownFileType="sourcecode.swift",
+                path=signing_capability, sourceTree="<group>")
+app_files.append(reference)
+sources.append(add("Build/" + signing_capability, "PBXBuildFile", fileRef=reference))
 resources = []
 # String catalogs hold every user-facing string. The source language stays
 # Chinese (the keys are the Chinese text); English is translated in the catalog.
@@ -132,7 +138,7 @@ base = {"IPHONEOS_DEPLOYMENT_TARGET": "15.0", "SDKROOT": "iphoneos", "SWIFT_VERS
 project_configs = configs("Project", base, {"SWIFT_COMPILATION_MODE": "wholemodule", "VALIDATE_PRODUCT": "YES"})
 app_settings = {"PRODUCT_BUNDLE_IDENTIFIER": "app.local.iPadn", "PRODUCT_NAME": "$(TARGET_NAME)", "CODE_SIGN_STYLE": "Automatic",
                 "DEVELOPMENT_TEAM": "", "TARGETED_DEVICE_FAMILY": "1,2", "INFOPLIST_FILE": "iPadn/Info.plist",
-                "GENERATE_INFOPLIST_FILE": "NO", "MARKETING_VERSION": "2.2.1", "CURRENT_PROJECT_VERSION": "35",
+                "GENERATE_INFOPLIST_FILE": "NO", "MARKETING_VERSION": "2.3.4", "CURRENT_PROJECT_VERSION": "40",
                 "SWIFT_EMIT_LOC_STRINGS": "YES", "LOCALIZATION_PREFERS_STRING_CATALOGS": "YES",
                 "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
                 "ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS": "YES", "ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME": "AccentColor",
@@ -273,6 +279,7 @@ info = {"CFBundleDevelopmentRegion": "$(DEVELOPMENT_LANGUAGE)", "CFBundleExecuta
         # audio keeps iPadn answering while the user pairs in Settings (on-device pairing only).
         "UIBackgroundModes": ["fetch", "audio"], "BGTaskSchedulerPermittedIdentifiers": ["app.local.iPadn.update-check"],
         "NSSupportsLiveActivities": True,
+        "NSSupportsLiveActivitiesFrequentUpdates": True,
         "CADisableMinimumFrameDurationOnPhone": True,
         "CFBundleIcons": {"CFBundleAlternateIcons": {name: {"CFBundleIconFiles": [name + "60x60"], "UIPrerenderedIcon": False}
                                                     for name in ALTERNATE_ICONS}},

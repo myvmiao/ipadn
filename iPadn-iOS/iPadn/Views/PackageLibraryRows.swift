@@ -9,6 +9,9 @@ struct PackageLibraryRow: View {
     var color: Color = .secondary
     var iconSize: CGFloat = 54
     var trailingNote: String? = nil
+    var badge: String? = nil
+    var badgeTint: Color = .blue
+    var isTestFlight: Bool = false
     @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
@@ -18,9 +21,14 @@ struct PackageLibraryRow: View {
                     HStack(alignment: .center, spacing: 12) {
                         AppIcon(url: icon, size: min(iconSize, 44)).accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(verbatim: name)
-                                .font(.body.weight(.medium))
-                                .fixedSize(horizontal: false, vertical: true)
+                            HStack(spacing: 6) {
+                                Text(verbatim: name)
+                                    .font(.body.weight(.medium))
+                                    .fixedSize(horizontal: false, vertical: true)
+                                if let badge, !badge.isEmpty {
+                                    TagBadge(text: LocalizedStringKey(badge), tint: badgeTint)
+                                }
+                            }
                             if let trailingNote, !trailingNote.isEmpty {
                                 Text(verbatim: trailingNote)
                                     .font(.caption.monospacedDigit())
@@ -35,11 +43,14 @@ struct PackageLibraryRow: View {
                 HStack(alignment: .center, spacing: 12) {
                     AppIcon(url: icon, size: iconSize).accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 3) {
-                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        HStack(alignment: .firstTextBaseline, spacing: 6) {
                             Text(verbatim: name)
                                 .font(.body.weight(.medium))
                                 .lineLimit(2)
                                 .fixedSize(horizontal: false, vertical: true)
+                            if let badge, !badge.isEmpty {
+                                TagBadge(text: LocalizedStringKey(badge), tint: badgeTint)
+                            }
                             if let trailingNote, !trailingNote.isEmpty {
                                 Spacer(minLength: 4)
                                 Text(verbatim: trailingNote)
@@ -58,12 +69,20 @@ struct PackageLibraryRow: View {
     }
 
     @ViewBuilder private var rowDetails: some View {
-        if !metadata.isEmpty {
-            Text(verbatim: metadata)
-                .font(.subheadline.monospacedDigit())
-                .foregroundStyle(.secondary)
-                .lineLimit(typeSize.isAccessibilitySize ? nil : 1)
-                .fixedSize(horizontal: false, vertical: true)
+        if isTestFlight || !metadata.isEmpty {
+            HStack(spacing: 5) {
+                if isTestFlight {
+                    TestFlightIcon(size: 14)
+                        .frame(minWidth: 15)
+                }
+                if !metadata.isEmpty {
+                    Text(verbatim: metadata)
+                        .font(.subheadline.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                        .lineLimit(typeSize.isAccessibilitySize ? nil : 1)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
         }
         HStack(alignment: .firstTextBaseline, spacing: 4) {
             if let symbol {
@@ -98,9 +117,14 @@ struct DecryptLiveSummary: View {
                                 Text(verbatim: PackageStage.displayName(service.sourceName))
                                     .font(.body.weight(.medium))
                                     .lineLimit(1)
-                                Text(verbatim: PackageStage.title(service.step))
-                                    .font(.footnote)
-                                    .foregroundStyle(UX.tint)
+                                HStack(spacing: 5) {
+                                    if record?.isTestFlight == true || service.detail.contains("/TestFlight/") {
+                                        TestFlightIcon(size: 13)
+                                    }
+                                    Text(verbatim: PackageStage.title(service.step))
+                                        .font(.footnote)
+                                        .foregroundStyle(UX.tint)
+                                }
                             }
                             Spacer(minLength: 8)
                             Text("约 \(Int(service.fraction * 100))%")
@@ -123,10 +147,13 @@ struct DecryptLiveSummary: View {
                                 Text("取消")
                                     .font(.caption.weight(.semibold))
                                     .foregroundStyle(.red)
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 4)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
                                     .background(Color.red.opacity(0.12), in: Capsule())
+                                    .frame(minWidth: 44, minHeight: 44, alignment: .trailing)
+                                    .contentShape(Rectangle())
                                     .tactileNavigationTap { ui.cancel() }
+                                    .accessibilityAddTraits(.isButton)
                                     .accessibilityLabel("取消解密")
                             }
                         }

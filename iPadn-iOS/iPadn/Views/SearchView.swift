@@ -72,7 +72,7 @@ struct SearchView: View {
         .compatibleNavigationDestination(item: $viewingFavorite) { app in AppDetailView(app: app) }
         .task { await store.loadNameCatalog() }
         .task { await store.checkWatched() }
-        .task(id: apple.activeID) { await store.ensureOwnedLoaded() }
+        .task { await store.ensureOwnedLoaded() }
     }
 
     /// Distinct section-scoped row identity prevents UICollectionView diffing
@@ -115,8 +115,8 @@ struct SearchView: View {
     @ViewBuilder private var historyChips: some View {
         ForEach(Array(store.searchHistory.prefix(12))) { item in
             // Tap searches; a long press lifts just this chip with a Delete menu.
-            MenuChip(title: item.term, symbol: "magnifyingglass", identifier: "history.\(item.id)",
-                     deleteTitle: AppText.text("删除")) {
+            CompatMenuChip(title: item.term, symbol: "magnifyingglass", identifier: "history.\(item.id)",
+                           deleteTitle: AppText.text("删除")) {
                 store.search(item.term)
             } onDelete: {
                 withAnimation { store.removeHistory(item.term) }
@@ -156,9 +156,8 @@ struct SearchView: View {
                             .font(.body)
                             .textCase(nil)
                             .fixedSize()
-                            .confirmationDialog("清除最近搜索？", isPresented: $confirmClear, titleVisibility: .visible) {
-                                Button("清除", role: .destructive) { withAnimation(UX.motion(reduceMotion)) { store.clearHistory() } }
-                                Button("取消", role: .cancel) {}
+                            .actionConfirmation(isPresented: $confirmClear, title: "清除最近搜索？", confirmTitle: "清除") {
+                                withAnimation(UX.motion(reduceMotion)) { store.clearHistory() }
                             }
                     }
                     .padding(.horizontal, -recentHeaderOutset)
@@ -266,19 +265,29 @@ struct AccountMenuButton: View {
 struct AccountAvatar: View {
     let account: AppleAccount?
     var size: CGFloat = 32
+    @Environment(\.colorScheme) private var colorScheme
     private var initials: String {
         guard let account else { return "" }
         let source = account.name.isEmpty ? account.id : account.name
         return String(source.trimmingCharacters(in: .whitespaces).prefix(1)).uppercased()
     }
+    private var gradientColors: [Color] {
+        colorScheme == .dark
+            ? [Color(red: 0.42, green: 0.44, blue: 0.46), Color(red: 0.31, green: 0.33, blue: 0.35)]
+            : [Color(red: 0.64, green: 0.65, blue: 0.68), Color(red: 0.52, green: 0.54, blue: 0.57)]
+    }
     var body: some View {
         ZStack {
-            Circle().fill(account == nil ? AnyShapeStyle(Color(.tertiarySystemFill))
-                          : AnyShapeStyle(LinearGradient(colors: [Color(.systemGray2), Color(.systemGray)], startPoint: .top, endPoint: .bottom)))
             if account == nil {
+                Circle().fill(Color(.tertiarySystemFill))
                 Image(systemName: "person.fill").font(.system(size: size * 0.5)).foregroundStyle(.secondary)
             } else {
-                Text(initials).font(.system(size: size * 0.45, weight: .semibold, design: .rounded)).foregroundStyle(.white)
+                Circle().fill(LinearGradient(colors: gradientColors,
+                                             startPoint: .top, endPoint: .bottom))
+                Text(initials)
+                    .font(.system(size: size * 0.45, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .compatContentTransitionOpacity()
             }
         }
         .frame(width: size, height: size)

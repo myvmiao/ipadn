@@ -48,7 +48,7 @@ final class DownloadConcurrencyTests: XCTestCase {
         var invalidations = 0
         let subscription = manager.objectWillChange.sink { invalidations += 1 }
         manager.urlSession(b, downloadTask: current, didWriteData: 3, totalBytesWritten: 3, totalBytesExpectedToWrite: 10)
-        for _ in 0..<100 where progress.bytes == nil { try await compatSleep(milliseconds: Double(10)) }
+        for _ in 0..<100 where progress.bytes == nil { try await Task.sleep(for: .milliseconds(10)) }
         XCTAssertEqual(progress.bytes?.written, 3)
         XCTAssertEqual(invalidations, 0, "Progress should publish only to its row")
         withExtendedLifetime(subscription) {}
@@ -277,6 +277,44 @@ final class DownloadConcurrencyTests: XCTestCase {
         }
     }
 
+    func testDownloadActivityUnifiesRegularAndTestFlightSnapshots() {
+        if #available(iOS 16.2, *) {
+            let now = Date(timeIntervalSince1970: 1_700_000_000)
+            let tfRunning = DownloadActivity.ActivityTaskSnapshot(
+                key: "tf:12345",
+                name: "TestFlight Beta",
+                phase: .running,
+                written: 50_000_000,
+                expected: 100_000_000,
+                speed: 5_000_000,
+                waitsForSilentInstall: false
+            )
+            let single = DownloadActivity.computeSnapshotState(active: [tfRunning], now: now)
+            XCTAssertEqual(single.phase, 0)
+            XCTAssertEqual(single.name, "TestFlight Beta")
+            XCTAssertEqual(single.count, 1)
+            XCTAssertEqual(single.written, 50_000_000)
+            XCTAssertEqual(single.expected, 100_000_000)
+            XCTAssertEqual(single.speed, 5_000_000)
+            XCTAssertNotNil(single.estimatedEnd)
+
+            let tfPaused = DownloadActivity.ActivityTaskSnapshot(
+                key: "tf:12345",
+                name: "TestFlight Beta",
+                phase: .paused,
+                written: 50_000_000,
+                expected: 100_000_000,
+                speed: 0,
+                waitsForSilentInstall: false
+            )
+            let pausedState = DownloadActivity.computePausedSnapshotState(paused: [tfPaused], now: now)
+            XCTAssertEqual(pausedState.phase, 7)
+            XCTAssertEqual(pausedState.name, "TestFlight Beta")
+            XCTAssertEqual(pausedState.written, 50_000_000)
+            XCTAssertEqual(pausedState.expected, 100_000_000)
+        }
+    }
+
     @MainActor
     func testInterruptedAutoInstallRecoveryClearsInFlightAndWaitingLoop() {
         let job = DownloadJob(app: StoreApp(id: "auto-crash-1", name: "Crash Guard App", version: "2.0"), status: .completed)
@@ -349,6 +387,40 @@ final class DownloadConcurrencyTests: XCTestCase {
             url: url, sinf: Data([1]), metadata: Data(), externalVersionIDs: [], platform: "ios", account: "user@example.com"
         )
         XCTAssertThrowsError(try retryManager.refreshFailed(failedJob.id, asset: wrongRetry))
+    }
+
+    func testDownloadActivityBackgroundThrottlingKeepsPercentSyncedWithinBudget() {
+        if #available(iOS 16.1, *) {
+            let now = Date(timeIntervalSince1970: 1_700_000_000)
+            let base = DownloadActivityAttributes.ContentState(
+                phase: 0, name: "Large IPA", count: 1,
+                written: 10_000_000, expected: 100_000_000,
+                updated: now, estimatedEnd: now.addingTimeInterval(60), speed: 1_500_000
+            )
+            // Same rounded integer percentage (10%) does not spam at 1s-4s in background, but keeps 5s heartbeat.
+            var tinyMove = base
+            tinyMove.written = 10_200_000
+            XCTAssertFalse(DownloadActivity.shouldSend(tinyMove, after: base, elapsed: 1.5, inBackground: true))
+            XCTAssertFalse(DownloadActivity.shouldSend(tinyMove, after: base, elapsed: 4.5, inBackground: true))
+            XCTAssertTrue(DownloadActivity.shouldSend(tinyMove, after: base, elapsed: 5.0, inBackground: true))
+
+            // Single integer percent change (10% -> 11%) waits 2s in background.
+            var onePercent = base
+            onePercent.written = 11_000_000
+            XCTAssertFalse(DownloadActivity.shouldSend(onePercent, after: base, elapsed: 1.2, inBackground: true))
+            XCTAssertTrue(DownloadActivity.shouldSend(onePercent, after: base, elapsed: 2.0, inBackground: true))
+
+            // Fast download jumping >= 3% (10% -> 14%) updates after 1s in background.
+            var fourPercent = base
+            fourPercent.written = 14_000_000
+            XCTAssertFalse(DownloadActivity.shouldSend(fourPercent, after: base, elapsed: 0.6, inBackground: true))
+            XCTAssertTrue(DownloadActivity.shouldSend(fourPercent, after: base, elapsed: 1.0, inBackground: true))
+
+            // Phase changes always bypass background throttle immediately.
+            var verifying = base
+            verifying.phase = 1
+            XCTAssertTrue(DownloadActivity.shouldSend(verifying, after: base, elapsed: 0.05, inBackground: true))
+        }
     }
 
     private final class SaveCounter: @unchecked Sendable {

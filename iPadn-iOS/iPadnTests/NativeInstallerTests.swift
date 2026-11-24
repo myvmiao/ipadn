@@ -127,6 +127,34 @@ final class NativeInstallerTests: XCTestCase {
             XCTAssertNotNil(OnDevicePairing.alertConfiguration(step: 4))
             XCTAssertNotNil(OnDevicePairing.alertConfiguration(step: 0, message: "timeout"))
         }
+        // Step 2 updates quietly so ActivityKit's Dynamic Island alert budget stays reserved for Step 3 (PIN).
+        XCTAssertTrue(OnDevicePairing.shouldAlertLiveActivity(forStep: 1))
+        XCTAssertFalse(OnDevicePairing.shouldAlertLiveActivity(forStep: 2))
+        XCTAssertTrue(OnDevicePairing.shouldAlertLiveActivity(forStep: 3))
+        XCTAssertTrue(OnDevicePairing.shouldAlertLiveActivity(forStep: 4))
+
+        // Step 3 must wait out audiomxd's cooldown when audio was recently paused,
+        // even inside the initial 24s window, so the PIN banner is never dropped.
+        let started = Date(timeIntervalSince1970: 1_700_000_000)
+        let pausedAt = started.addingTimeInterval(15)
+        let step3Wait = BackgroundKeepAlive.mediaAssertionWaitSeconds(
+            releasedAt: pausedAt,
+            activityStartedAt: started,
+            allowLaunchGrantBypass: false,
+            resumedInBackground: false,
+            now: started.addingTimeInterval(16)
+        )
+        XCTAssertGreaterThan(step3Wait, 4.0)
+
+        // Once 5.4s have elapsed since pausing audio at handoff, Step 3 waits 0s.
+        let clearedWait = BackgroundKeepAlive.mediaAssertionWaitSeconds(
+            releasedAt: started.addingTimeInterval(2),
+            activityStartedAt: started,
+            allowLaunchGrantBypass: false,
+            resumedInBackground: false,
+            now: started.addingTimeInterval(10)
+        )
+        XCTAssertEqual(clearedWait, 0, accuracy: 0.001)
     }
 
     func testPhaseIsCancellableDistinguishesTransferFromSystemInstall() {
@@ -152,6 +180,26 @@ final class NativeInstallerTests: XCTestCase {
         cache.store(port: 54321, fromDiscovery: true, now: t0)
         cache.invalidate()
         XCTAssertNil(cache.freshEntry(now: t0))
+    }
+
+    func testNativeInstallerRequiresiOS17Point4OrLater() {
+        XCTAssertFalse(NativeInstaller.isSystemVersionSupported(OperatingSystemVersion(majorVersion: 16, minorVersion: 4, patchVersion: 0)))
+        XCTAssertFalse(NativeInstaller.isSystemVersionSupported(OperatingSystemVersion(majorVersion: 17, minorVersion: 3, patchVersion: 1)))
+        XCTAssertTrue(NativeInstaller.isSystemVersionSupported(OperatingSystemVersion(majorVersion: 17, minorVersion: 4, patchVersion: 0)))
+        XCTAssertTrue(NativeInstaller.isSystemVersionSupported(OperatingSystemVersion(majorVersion: 18, minorVersion: 0, patchVersion: 0)))
+        XCTAssertTrue(NativeInstaller.isSystemVersionSupported(OperatingSystemVersion(majorVersion: 27, minorVersion: 0, patchVersion: 1)))
+    }
+
+    func testRemotePairingPortRejectsPeerLANAddresses() {
+        let local: Set<String> = ["127.0.0.1", "::1", "192.168.1.42", "10.7.0.1", "fe80::1"]
+        XCTAssertTrue(RemotePairingPort.isLocalAddress("127.0.0.1", localAddresses: local))
+        XCTAssertTrue(RemotePairingPort.isLocalAddress("::1", localAddresses: local))
+        XCTAssertTrue(RemotePairingPort.isLocalAddress("::ffff:192.168.1.42", localAddresses: local))
+        XCTAssertTrue(RemotePairingPort.isLocalAddress("fe80:0:0:0::1%en0", localAddresses: local))
+        XCTAssertTrue(RemotePairingPort.isLocalAddress("10.7.0.1", localAddresses: local))
+        XCTAssertFalse(RemotePairingPort.isLocalAddress("192.168.1.99", localAddresses: local))
+        XCTAssertFalse(RemotePairingPort.isLocalAddress("fe80::dead:beef%en0", localAddresses: local))
+        XCTAssertFalse(RemotePairingPort.isLocalAddress("", localAddresses: local))
     }
 
     func testNativeInstallerIdleCancelAndUnavailableBlockingRunnerDoesNotDeadlock() async {

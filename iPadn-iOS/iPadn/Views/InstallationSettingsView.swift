@@ -59,6 +59,9 @@ struct InstallationSettingsView: View {
             }
             if store.settings.usesNativeInstallation {
                 Section {
+                    if !NativeInstaller.isSystemVersionSupported {
+                        InlineIssue(message: AppText.text("原生安装需要 iOS 17.4 及以上系统。当前系统请改用「一键安装」或「本机证书」。"))
+                    }
                     Label("App Store 能识别并更新安装的应用", systemImage: "checkmark.seal")
                     Label("可以直接覆盖 App Store 安装的应用，数据保留", systemImage: "arrow.triangle.2.circlepath")
                     LabeledContent("配对文件", value: hasPairingFile ? AppText.text("已导入") : AppText.text("未导入"))
@@ -69,9 +72,10 @@ struct InstallationSettingsView: View {
                         .disabled(pairing.phase.isActive).accessibilityIdentifier("installation.pair-on-device")
                     }
                     Button("导入配对文件", systemImage: "square.and.arrow.down") { importPairingFile() }
+                        .disabled(busy || !NativeInstaller.isSystemVersionSupported)
                         .accessibilityIdentifier("installation.pairing-file")
                     Button { checkConnection() } label: { actionLabel("检查连接", systemImage: "point.3.connected.trianglepath.dotted", action: .connection) }
-                        .disabled(busy || !hasPairingFile).accessibilityIdentifier("installation.native-check")
+                        .disabled(busy || !hasPairingFile || !NativeInstaller.isSystemVersionSupported).accessibilityIdentifier("installation.native-check")
                     if hasPairingFile {
                         Button("移除配对文件", systemImage: "trash", role: .destructive) { removingPairingFile = true }
                     }
@@ -83,7 +87,14 @@ struct InstallationSettingsView: View {
                     }
                 }
                 if pairing.phase != .idle, !showingPairingGuide {
-                    Section { PairingStatusRow(phase: pairing.phase) { pairing.cancel() } }
+                    Section {
+                        PairingStatusRow(phase: pairing.phase)
+                        if pairing.phase.isActive {
+                            Button("取消配对", role: .destructive) { pairing.cancel() }
+                                .frame(maxWidth: .infinity)
+                                .accessibilityIdentifier("installation.pairing-cancel")
+                        }
+                    }
                 }
             } else if store.settings.automaticInstallation {
                 Section {
@@ -131,7 +142,7 @@ struct InstallationSettingsView: View {
             }
         }.toolPage().navigationTitle("安装设置").navigationBarTitleDisplayMode(.inline)
             .task {
-                let tryImportPairing = store.settings.usesNativeInstallation && !hasPairingFile
+                let tryImportPairing = store.settings.usesNativeInstallation && NativeInstaller.isSystemVersionSupported && !hasPairingFile
                 async let certLoad = refreshCertificate()
                 async let pairingImported = Task.detached(priority: .userInitiated) { () -> Result<Bool, Error> in
                     guard tryImportPairing else { return .success(false) }
@@ -364,14 +375,15 @@ extension OnDevicePairing.Phase {
 /// Where on-device pairing is, with the code to type once there is one.
 private struct PairingStatusRow: View {
     let phase: OnDevicePairing.Phase
-    let cancel: () -> Void
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             switch phase {
             case .waiting:
                 Label("请打开「设置 › 隐私与安全性 › 开发者模式」，点按「与 iPadn 配对」。", systemImage: "gear")
+                    .fixedSize(horizontal: false, vertical: true)
             case .connected:
                 Label("设备已连接，正在开始配对…", systemImage: "iphone.radiowaves.left.and.right")
+                    .fixedSize(horizontal: false, vertical: true)
             case .code(let code):
                 Text("在「设置」中输入配对码").font(.subheadline).foregroundStyle(.secondary)
                 Text(code).font(.system(size: 40, weight: .bold, design: .rounded)).monospacedDigit().tracking(6)
@@ -381,14 +393,13 @@ private struct PairingStatusRow: View {
                 Label("配对完成", systemImage: "checkmark.circle.fill")
             case .failed(let message):
                 Label(message, systemImage: "exclamationmark.triangle")
+                    .fixedSize(horizontal: false, vertical: true)
             case .idle:
                 EmptyView()
             }
-            if phase.isActive {
-                Button("取消配对", role: .cancel, action: cancel).frame(maxWidth: .infinity)
-            }
         }
         .font(.subheadline)
+        .padding(.vertical, 4)
         .accessibilityIdentifier("installation.pairing-status")
     }
 }
@@ -420,11 +431,20 @@ private struct PairingGuideView: View {
                 }
                 // Nothing to show once pairing is cancelled; an empty card would remain.
                 if pairing.phase != .idle {
-                    Section { PairingStatusRow(phase: pairing.phase) { pairing.cancel() } }
+                    Section { PairingStatusRow(phase: pairing.phase) }
                 }
             }
             .navigationTitle("在本机配对").navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    if pairing.phase.isActive {
+                        Button("取消配对", role: .destructive) {
+                            pairing.cancel()
+                            dismiss()
+                        }
+                        .accessibilityIdentifier("installation.pairing-cancel")
+                    }
+                }
                 ToolbarItem(placement: .confirmationAction) {
                     if pairing.phase.isActive {
                         Button("打开设置") { openSettings() }.accessibilityIdentifier("installation.pairing-open-settings")

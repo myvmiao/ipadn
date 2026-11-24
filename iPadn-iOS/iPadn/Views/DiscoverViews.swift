@@ -41,7 +41,7 @@ struct ChartView: View {
         return list
     }
 
-        private func regionTitle(_ code: String) -> String {
+    private func regionTitle(_ code: String) -> String {
         StoreRegions.flag(code) + " " + StoreRegions.name(code)
     }
 
