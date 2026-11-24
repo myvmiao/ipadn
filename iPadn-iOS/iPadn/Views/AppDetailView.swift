@@ -389,7 +389,6 @@ struct AppDetailView: View {
                     } header: { sectionTitle(extras?.developer.isEmpty == false ? "更多来自 \(extras!.developer)" : "同一开发者的其他应用") }
                 }
             }
-            .labeledContentStyle(CardLabeledContentStyle())
             .padding(.top, 8).padding(.bottom, 24)
         }
         .compatibleScrollPhaseTracking(scrollGate)
